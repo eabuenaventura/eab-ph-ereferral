@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: FHIR Authoring Patterns
+    url: https://fhirpatterns.net/fhir-authoring-patterns/patterns/pl-05/
+    about: Definition-of-Done per Artifact guidance

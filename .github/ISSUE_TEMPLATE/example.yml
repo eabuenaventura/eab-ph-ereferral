@@ -1,0 +1,71 @@
+name: Example
+description: Create or update a FHIR example instance
+title: "[Example] "
+labels: ["example", "ig-artifact"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Example Definition-of-Done
+        Reference: [Definition-of-Done per Artifact](https://fhirpatterns.net/fhir-authoring-patterns/patterns/pl-05/)
+        
+  - type: input
+    id: example_name
+    attributes:
+      label: Example Name
+      description: Name/ID of the example
+      placeholder: "example-servicerequest-referral"
+    validations:
+      required: true
+      
+  - type: input
+    id: profile_target
+    attributes:
+      label: Target Profile
+      description: Profile this example instantiates
+      placeholder: "PeRefServiceRequest"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario Description
+      description: What workflow scenario does this example demonstrate?
+      placeholder: "GP creates referral to specialist for patient with suspected condition"
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: dod_checklist
+    attributes:
+      label: Definition-of-Done Checklist
+      description: Complete before marking as done
+      options:
+        - label: Example validates against target profile
+          required: true
+        - label: All must-support elements populated
+          required: true
+        - label: Narrative description included
+          required: true
+        - label: Linked to workflow/use case
+          required: true
+        - label: Uses realistic data (no lorem ipsum)
+          required: true
+        - label: Passes IG build validation
+          required: true
+          
+  - type: dropdown
+    id: sprint
+    attributes:
+      label: Target Sprint
+      options:
+        - Sprint 0
+        - Sprint 1
+        - Sprint 2
+        - Sprint 3
+        - Sprint 4
+        - Sprint 5
+        - Sprint 6
+    validations:
+      required: true

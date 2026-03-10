@@ -1,0 +1,95 @@
+name: Test Script
+description: Create or update test script for workflow validation
+title: "[Test] "
+labels: ["testing", "ig-artifact"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Test Script Definition-of-Done
+        Reference: [Definition-of-Done per Artifact](https://fhirpatterns.net/fhir-authoring-patterns/patterns/pl-05/)
+        
+        Sprint 0 requires: By-hand end-to-end test script (create → send → receive → outcome → close)
+        
+  - type: input
+    id: test_name
+    attributes:
+      label: Test Name
+      description: Name of the test script
+      placeholder: "test-referral-workflow-basic"
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: test_type
+    attributes:
+      label: Test Type
+      options:
+        - By-hand test script
+        - Automated workflow check
+        - State transition test
+        - Multi-participant test
+        - Validation test
+    validations:
+      required: true
+      
+  - type: textarea
+    id: workflow_steps
+    attributes:
+      label: Workflow Steps
+      description: List the workflow steps being tested
+      placeholder: |
+        1. Create referral (ServiceRequest)
+        2. Send to receiving system
+        3. Receive and acknowledge
+        4. Update outcome (accept/redirect/reject)
+        5. Close referral
+    validations:
+      required: true
+      
+  - type: textarea
+    id: expected_states
+    attributes:
+      label: Expected States
+      description: State transitions and expected outcomes
+      placeholder: |
+        - Initial: draft
+        - After send: active
+        - After receive: active + Task created
+        - After outcome: completed/revoked
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: dod_checklist
+    attributes:
+      label: Definition-of-Done Checklist
+      description: Complete before marking as done
+      options:
+        - label: Test steps clearly documented
+          required: true
+        - label: Expected outcomes defined
+          required: true
+        - label: Test data/examples provided
+          required: true
+        - label: Test runs successfully (manual or automated)
+          required: true
+        - label: State transitions validated
+          required: true
+        - label: Linked to workflow documentation
+          required: true
+          
+  - type: dropdown
+    id: sprint
+    attributes:
+      label: Target Sprint
+      options:
+        - Sprint 0
+        - Sprint 1
+        - Sprint 2
+        - Sprint 3
+        - Sprint 4
+        - Sprint 5
+        - Sprint 6
+    validations:
+      required: true

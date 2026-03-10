@@ -1,0 +1,75 @@
+name: ValueSet
+description: Create or update a FHIR ValueSet
+title: "[ValueSet] "
+labels: ["terminology", "ig-artifact"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ValueSet Definition-of-Done
+        Reference: [Definition-of-Done per Artifact](https://fhirpatterns.net/fhir-authoring-patterns/patterns/pl-05/)
+        
+        **DoD Example:** ValueSet DoD: intent + compose + test vectors + at least one bound example.
+        
+  - type: input
+    id: valueset_name
+    attributes:
+      label: ValueSet Name
+      description: Name of the ValueSet
+      placeholder: "PeRefServiceType"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: purpose
+    attributes:
+      label: Purpose
+      description: Clinical/business intent of this ValueSet
+      placeholder: "Describe what this ValueSet represents and why it's needed"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: concepts
+    attributes:
+      label: Concepts / Compose Rules
+      description: List key concepts or compose rules
+      placeholder: |
+        - Include codes from SNOMED CT for referral types
+        - Exclude deprecated codes
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: dod_checklist
+    attributes:
+      label: Definition-of-Done Checklist
+      description: Complete before marking as done
+      options:
+        - label: Intent/purpose documented
+          required: true
+        - label: Compose rules defined
+          required: true
+        - label: Test vectors provided (valid/invalid codes)
+          required: true
+        - label: At least one bound example exists
+          required: true
+        - label: ValueSet expands successfully
+          required: true
+        - label: Validated against terminology server
+          required: true
+          
+  - type: dropdown
+    id: sprint
+    attributes:
+      label: Target Sprint
+      options:
+        - Sprint 0
+        - Sprint 1
+        - Sprint 2
+        - Sprint 3
+        - Sprint 4
+        - Sprint 5
+        - Sprint 6
+    validations:
+      required: true

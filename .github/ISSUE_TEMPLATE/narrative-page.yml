@@ -1,0 +1,80 @@
+name: Narrative Page
+description: Create or update IG narrative/documentation page
+title: "[Page] "
+labels: ["documentation", "ig-artifact"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Page Definition-of-Done
+        Reference: [Definition-of-Done per Artifact](https://fhirpatterns.net/fhir-authoring-patterns/patterns/pl-05/)
+        
+  - type: input
+    id: page_name
+    attributes:
+      label: Page Name
+      description: Name/title of the page
+      placeholder: "Workflow Overview"
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: page_type
+    attributes:
+      label: Page Type
+      options:
+        - Workflow/Use Case
+        - Implementation Guide
+        - Testing Guide
+        - Conformance Requirements
+        - Background/Context
+        - Other
+    validations:
+      required: true
+      
+  - type: textarea
+    id: content_outline
+    attributes:
+      label: Content Outline
+      description: Key sections and topics to cover
+      placeholder: |
+        - Overview
+        - Actors and roles
+        - Workflow steps
+        - State transitions
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: dod_checklist
+    attributes:
+      label: Definition-of-Done Checklist
+      description: Complete before marking as done
+      options:
+        - label: Page renders correctly in IG build
+          required: true
+        - label: All links are valid (no broken links)
+          required: true
+        - label: Diagrams/images included where needed
+          required: true
+        - label: Links to relevant profiles/examples
+          required: true
+        - label: Reviewed for clarity and accuracy
+          required: true
+        - label: Indexed in IG table of contents
+          required: true
+          
+  - type: dropdown
+    id: sprint
+    attributes:
+      label: Target Sprint
+      options:
+        - Sprint 0
+        - Sprint 1
+        - Sprint 2
+        - Sprint 3
+        - Sprint 4
+        - Sprint 5
+        - Sprint 6
+    validations:
+      required: true
