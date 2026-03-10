@@ -1,0 +1,130 @@
+name: PH-Core Dependency Change
+description: Request a change to PH-Core (shared module dependency)
+title: "[PH-Core] "
+labels: ["ph-core", "dependency", "upstream"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## PH-Core Dependency Change Request
+        
+        This project depends on **PH-Core** as a shared module. Changes needed in PH-Core require a PR to the upstream repository.
+        
+        Reference: [Shared Modules IG Pattern](https://fhirpatterns.net/ig-authoring-patterns/patterns/shared-modules-ig/)
+        
+  - type: dropdown
+    id: change_type
+    attributes:
+      label: Change Type
+      description: What type of change is needed in PH-Core?
+      options:
+        - New Profile
+        - New Extension
+        - New ValueSet/CodeSystem
+        - Profile Modification
+        - Extension Modification
+        - Terminology Update
+        - Bug Fix
+        - Other
+    validations:
+      required: true
+      
+  - type: input
+    id: artifact_name
+    attributes:
+      label: Artifact Name
+      description: Name of the PH-Core artifact to create/modify
+      placeholder: "AUCorePatient, au-core-extension-ethnicity"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale
+      description: Why is this change needed for PH-eReferral?
+      placeholder: "PH-eReferral needs to reference patient ethnicity in referral workflows, but PH-Core doesn't currently include this extension"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Requirements
+      description: Specific requirements for the PH-Core change
+      placeholder: |
+        - Extension should be optional on Patient
+        - ValueSet should include AIHW ethnicity codes
+        - Must be compatible with AU Core
+    validations:
+      required: true
+      
+  - type: input
+    id: ph_core_version
+    attributes:
+      label: Current PH-Core Version
+      description: Version of PH-Core currently used by this IG
+      placeholder: "0.1.0"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact on PH-eReferral
+      description: How does this change affect PH-eReferral implementation?
+      placeholder: "Blocks Sprint 2 referral profile completion"
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: coordination
+    attributes:
+      label: Coordination Checklist
+      description: Steps for managing upstream dependency
+      options:
+        - label: Discussed with PH-Core maintainers
+          required: false
+        - label: Checked PH-Core compatibility matrix
+          required: true
+        - label: Identified target PH-Core version for change
+          required: true
+        - label: Prepared to create PR to PH-Core repo
+          required: false
+        - label: Documented in ADR/Decision Log
+          required: true
+        - label: Identified fallback if change is rejected
+          required: true
+          
+  - type: input
+    id: ph_core_issue
+    attributes:
+      label: PH-Core Issue/PR Link
+      description: Link to PH-Core issue or PR (if created)
+      placeholder: "https://github.com/org/ph-core/issues/123"
+    validations:
+      required: false
+      
+  - type: dropdown
+    id: sprint
+    attributes:
+      label: Target Sprint
+      options:
+        - Sprint 0
+        - Sprint 1
+        - Sprint 2
+        - Sprint 3
+        - Sprint 4
+        - Sprint 5
+        - Sprint 6
+    validations:
+      required: true
+      
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Notes
+      description: Any other context or considerations
+      placeholder: "May need to coordinate release timing with PH-Core team"
+    validations:
+      required: false
