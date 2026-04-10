@@ -3,7 +3,7 @@
 # │  used properties are included. For a list of all supported properties and their functions,     │
 # │  see: https://fshschool.org/docs/sushi/configuration/.                                         │
 # ╰────────────────────────────────────────────────────────────────────────────────────────────────╯
-id: example.fhir.ph.ereferral
+id: fhir.ph.ereferral
 canonical: urn://example.com/ph-ereferral/fhir
 name: PHeReferralImplementationGuide
 title: PH eReferral Implementation Guide
