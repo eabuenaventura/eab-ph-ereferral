@@ -54,6 +54,8 @@ This IG aligns with the **[Universal Health Care Act (Republic Act 11223)](https
 
 This FHIR IG is provided for testing purposes and is not yet suitable for production systems.
 
+For the narrative and policy foundation of this implementation guide, see [WHO SMART Guidelines L1 Basis for the PH eReferral IG](who-smart-l1.html).
+
 ## What is a Use Case IG?
 
 A use case Implementation Guide builds upon foundational and core standards to address a specific clinical or administrative workflow. Unlike base or core IGs that establish broad interoperability foundations, a use case IG:
@@ -64,6 +66,8 @@ A use case Implementation Guide builds upon foundational and core standards to a
 - **Specifies business rules** — documents the rules governing referral lifecycle, status transitions, and required data elements
 
 PH eReferral demonstrates how FHIR resources can be applied to solve a real-world interoperability challenge in the Philippine healthcare system.
+
+The corresponding L1 narrative basis page explains how this implementation guide is grounded in national policy, HCPN service-delivery design, primary care coordination, and future traceability to WHO SMART L2 and L3 work.
 
 ## Purpose and Scope
 
