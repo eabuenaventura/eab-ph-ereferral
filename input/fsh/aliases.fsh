@@ -1,5 +1,6 @@
 Alias: $sct = http://snomed.info/sct
 Alias: $loinc = http://loinc.org
+Alias: $icd11 = http://id.who.int/icd/release/11/mms
 Alias: $PhilHealthID = http://philhealth.gov.ph/fhir/Identifier/philhealth-id
 Alias: $PhilSysID = http://philsys.gov.ph/fhir/Identifier/philsys-id
 Alias: $PSA = https://psa.gov.ph/classification
