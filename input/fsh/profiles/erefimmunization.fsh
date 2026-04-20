@@ -127,6 +127,6 @@ Id: ereferral-vaccine-code-vs
 Title: "ERef Vaccine Code Value Set"
 Description: "Vaccine codes for use in Philippine eReferral immunization records. Supports CVX, ICD-11, and locally defined Philippine vaccine codes."
 
-* codes from system http://snomed.info/sct
-* codes from system http://id.who.int/icd/release/11/mms
-* codes from system http://hl7.org/fhir/sid/cvx
+* codes from system $sct
+* codes from system $icd11
+* codes from system $VaccineAdministeredCodeSet-CVX
