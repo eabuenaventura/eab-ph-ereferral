@@ -1,0 +1,71 @@
+# This CI/CD workflow was derived from the HL7 FHIR IPS project:
+# https://github.com/HL7/fhir-ips/blob/master/.github/workflows/validate-docs.yml
+# Original license: Apache 2.0 (per HL7 FHIR licensing)
+
+name: Validate docs
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [opened, synchronize] # This will trigger the workflow only when a PR is opened or updated with new commits
+
+jobs:
+  validate-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        env:
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+        run: |
+          echo "Checking branch name: $BRANCH_NAME"
+
+          # Check for forward slash
+          if echo "$BRANCH_NAME" | grep -q '/'; then
+            echo "::error::Branch name contains '/'. Use hyphens instead."
+            exit 1
+          fi
+
+          # Check for other invalid characters
+          if echo "$BRANCH_NAME" | grep -qE '[\\~^:\[\] ]'; then
+            echo "::error::Branch name contains invalid special characters."
+            exit 1
+          fi
+
+          echo "✅ Branch name validation passed"
+
+  sushi:
+    needs: validate-branch-name
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Sushi
+        run: sudo npm install -g fsh-sushi
+
+      - name: Validate with Sushi
+        run: sushi .
+
+  ig-publisher:
+    needs: validate-branch-name
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Jekyll
+        run: sudo gem install jekyll
+
+      - name: Install Sushi
+        run: sudo npm install -g fsh-sushi
+
+      - name: Install IG publisher
+        run: |
+          chmod +x ./_updatePublisher.sh
+          ./_updatePublisher.sh -y
+
+      - name: Validate IG
+        run: |
+          chmod +x ./_genonce.sh
+          ./_genonce.sh
