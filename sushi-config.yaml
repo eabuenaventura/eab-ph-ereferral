@@ -79,6 +79,8 @@ menu:
   Home: index.html
   Guidelines:
     WHO SMART L1 Basis: who-smart-l1.html
+  Workflow:
+    v0.1 Referral Workflow: referral-workflow.html
   Artifacts: artifacts.html
 
 # ╭───────────────────────────Less Common Implementation Guide Properties──────────────────────────╮
