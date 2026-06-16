@@ -35,6 +35,47 @@
 
 > **Pattern:** [Local Build Parity](https://fhirpatterns.net/ig-authoring-patterns/patterns/local-build-parity/) — The equivalent macOS/Linux/Windows build scripts above follow this pattern: every developer should be able to reproduce the CI build locally. See also [GitHub Actions Pipeline](https://fhirpatterns.net/ig-authoring-patterns/patterns/github-actions-pipeline/) for the CI workflow structure in `.github/workflows/`.
 
+### Content Generation Scripts
+
+The following scripts live in `input/` and regenerate derived content before building.
+
+**Data Dictionary Table (from CSV):**
+```bash
+python input/generate_data_dictionary_table.py
+```
+- Reads: `input/images/data-dictionary.csv`
+- Writes: `input/includes/data-dictionary-table.html`
+- Path-agnostic — resolves relative to the script location.
+
+**Reference Pages (from PDFs + YAML):**
+```bash
+python input/generate_references.py
+```
+- Reads: `input/references.yaml` (metadata for each PDF)
+- Reads: `input/images/references/*.pdf`
+- Writes: `input/images/references-pages/*.png` (one per page)
+- Writes: `input/pagecontent/references.md` (auto-generated inline preview)
+- Requirements: `pdftoppm` (from poppler-utils / poppler package)
+  - macOS: `brew install poppler`
+  - Ubuntu/Debian: `sudo apt-get install poppler-utils`
+- Idempotent — safe to re-run; cleans orphaned PNGs if page counts change.
+
+### Table Styling Convention
+
+All markdown tables in narrative pages must be wrapped in `<div class="ph-table" markdown="1">` to receive consistent styling from `input/includes/fragment-css.html`:
+
+```markdown
+<div class="ph-table" markdown="1">
+
+| Header | Header |
+|--------|--------|
+| Cell   | Cell   |
+
+</div>
+```
+
+This ensures tables receive the `.ph-table` CSS (light headers, borders, zebra striping) without affecting generated artifacts pages like `artifacts.html` or `index.html`.
+
 ## Architecture
 
 - **Type**: FHIR R4 Implementation Guide using SUSHI/FSH
