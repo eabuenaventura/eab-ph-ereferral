@@ -62,6 +62,7 @@ Description: "Ambulatory encounter at Kalibo Health Center where Ana Reyes was a
 * status = #finished
 * class = $v3-ActCode#AMB "ambulatory"
 * subject = Reference(ExampleERefPatient)
+* basedOn = Reference(ExampleERefServiceRequest)
 
 
 // --- PRACTITIONER — REF-1 Name of Referring Practitioner (Required=Yes) ------
@@ -108,6 +109,18 @@ Description: "Links Dr. Maria Villanueva to Kalibo Health Center as a primary ca
 
 * practitioner = Reference(ExampleERefPractitionerSubmission)
 * organization = Reference(ExampleERefOrganizationKaliboHC)
+* code = $sct#158965000 "Medical practitioner"
+
+
+// --- PRACTITIONERROLE (Receiving) — REF-9/10/11 Care Navigator + Facility -----
+// Practitioner not yet assigned; organization carries the receiving facility
+Instance: ExampleERefPractitionerRoleReceiving
+InstanceOf: ERefPractitionerRole
+Usage: #example
+Title: "Example PractitionerRole — Receiving Facility at RSTMH"
+Description: "PractitionerRole representing the receiving facility at RSTMH for Task.owner linkage. Practitioner not yet assigned at initial submission."
+
+* organization = Reference(ExampleERefOrganizationRSTMH)
 * code = $sct#158965000 "Medical practitioner"
 
 
@@ -207,6 +220,7 @@ Description: "Urinalysis results showing proteinuria 3+, supporting the pre-ecla
 * status = #final
 * code = $loinc#24356-8 "Urinalysis complete panel - Urine"
 * subject = Reference(ExampleERefPatient)
+* encounter = Reference(ExampleERefSubmissionEncounter)
 * conclusion = "Proteinuria 3+. Findings consistent with severe pre-eclampsia."
 * presentedForm.title = "Urinalysis Results — Kalibo Health Center"
 
@@ -251,6 +265,9 @@ Description: "Referral request from Kalibo Health Center to Dr. Rafael S. Tumbok
 // REF-21: Subject (patient)
 * subject = Reference(ExampleERefPatient)
 
+// Encounter: the clinical event this referral is associated with
+* encounter = Reference(ExampleERefSubmissionEncounter)
+
 // Free-text referral notes
 * note.text = "Ana Reyes, 38-year-old G2P1, 32 weeks AOG. BP 180/110 mmHg with severe headache, dizziness, and blurring of vision. Proteinuria 3+. Referred for urgent management of severe pre-eclampsia."
 
@@ -285,8 +302,8 @@ Description: "Task representing the referral for Ana Reyes in 'requested' status
 // Referring side
 * requester = Reference(ExampleERefPractitionerRoleSubmission)
 
-// REF-9, REF-10, REF-11: Receiving facility / Care Navigator
-* owner = Reference(ExampleERefOrganizationRSTMH)
+// REF-9, REF-10, REF-11: Receiving facility / Care Navigator (via PractitionerRole)
+* owner = Reference(ExampleERefPractitionerRoleReceiving)
 
 * authoredOn = "2026-06-18T08:30:00+08:00"
 * lastModified = "2026-06-18T08:30:00+08:00"
@@ -374,6 +391,12 @@ Description: "Transaction bundle for the initial referral submission from Kalibo
 * entry[=].resource = ExampleERefOrganizationRSTMH
 * entry[=].request.method = #POST
 * entry[=].request.url = "Organization"
+
+// PractitionerRole — Receiving (RSTMH)
+* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/PractitionerRole/ExampleERefPractitionerRoleReceiving"
+* entry[=].resource = ExampleERefPractitionerRoleReceiving
+* entry[=].request.method = #POST
+* entry[=].request.url = "PractitionerRole"
 
 // Condition
 * entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Condition/ExampleERefConditionChestPain"

@@ -57,6 +57,17 @@ Description: "Western Visayas Medical Center (WVMC), the tertiary hospital recei
 * address.extension[barangay].valueCoding = $PSGC#0631000001 "Santa Cruz"
 
 
+// --- PRACTITIONERROLE — Receiving Facility at WVMC -----------------------------
+Instance: ExampleERefPractitionerRoleWVMC
+InstanceOf: ERefPractitionerRole
+Usage: #example
+Title: "Example PractitionerRole — Receiving Facility at WVMC"
+Description: "PractitionerRole representing the onward receiving facility at WVMC for Task.owner linkage."
+
+* organization = Reference(ExampleERefOrganizationWVMC)
+* code = $sct#158965000 "Medical practitioner"
+
+
 // --- SERVICE REQUEST — Onward (RSTMH → WVMC) -----------------------------------
 // --- REF-18: replaces chain ----------------------------------------------------
 Instance: ExampleERefServiceRequestOnward
@@ -103,7 +114,7 @@ Description: "Task representing the onward referral in 'rejected' status with 'r
 * focus = Reference(ExampleERefServiceRequestOnward)
 * for = Reference(ExampleERefPatient)
 * requester = Reference(ExampleERefPractitionerRoleRSTMH)
-* owner = Reference(ExampleERefOrganizationWVMC)
+* owner = Reference(ExampleERefPractitionerRoleWVMC)
 
 // REF-18: businessStatus captures the referred-onward response
 * businessStatus = EReferralWorkflowCS#referred-onward "Referred onward"
@@ -142,6 +153,12 @@ Description: "Transaction bundle for the onward referral from Dr. Rafael S. Tumb
 * entry[=].resource = ExampleERefOrganizationWVMC
 * entry[=].request.method = #POST
 * entry[=].request.url = "Organization"
+
+// PractitionerRole — Receiving at WVMC
+* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/PractitionerRole/ExampleERefPractitionerRoleWVMC"
+* entry[=].resource = ExampleERefPractitionerRoleWVMC
+* entry[=].request.method = #POST
+* entry[=].request.url = "PractitionerRole"
 
 // ServiceRequest — Onward
 * entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/ServiceRequest/ExampleERefServiceRequestOnward"
