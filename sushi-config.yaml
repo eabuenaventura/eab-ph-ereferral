@@ -85,6 +85,8 @@ menu:
     Coverage Map: coverage-map.html
     Decision Log: decision-log.html
   Artifacts: artifacts.html
+  Sample Cases:
+    Ana Reyes Referral: sample-case-ana-reyes.html
   References:
     Documents: references.html
     Data Dictionary: data-dictionary.html
