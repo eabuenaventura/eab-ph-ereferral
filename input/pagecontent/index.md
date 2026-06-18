@@ -110,6 +110,31 @@ PH Core provides the **parent/base profiles** used by this IG. PH eReferral:
 
 This layered approach enables reuse of common PH Core definitions while addressing the specific needs of HCPN referral workflows mandated by the [UHC Act](https://elibrary.judiciary.gov.ph/thebookshelf/showdocs/2/86448).
 
+## Contributors
+
+The following individuals contributed to the development of the Philippine eReferral Implementation Guide:
+
+- John Lemuel Dalisay, IG Lead
+- Dethalee Gabrielle Velasquez, PMO
+- Dr. Alvin Marcelo
+- Dr. Jaime Kristoffer Punzalan
+- Dr. Paolo Miguel Baquiano
+- Dr. Reina Juno Sumatra
+- Umer Nisar
+- John Carter
+- Jörn Guy Süß
+- Felipe Canlas
+- Noel del Castillo
+- Lester Batay-an
+- Arturo Ongkeko
+- Dr. Thomas Niccolo Reyes
+- Dr. Sofia Lemuelle Capistrano
+- Jan Michael Herber
+- Gerard Paolo Villanueva, IG Authoring Lead
+- Errol Buenaventura, TDG Lead
+- Lawrence Macalalad, CDG Lead
+- Jaylord Ambal
+
 ## Dependencies
 
 {% include ip-statements.xhtml %}
