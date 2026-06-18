@@ -9,3 +9,4 @@ Thumbs.db
 .vscode/settings.json
 .gitignore
 /mcp folder
+.ignore

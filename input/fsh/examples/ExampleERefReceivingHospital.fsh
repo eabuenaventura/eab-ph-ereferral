@@ -3,13 +3,17 @@ InstanceOf: PHCoreOrganization
 Usage: #example
 Title: "Example Receiving Hospital"
 Description: "Example tertiary hospital receiving facility"
-* identifier.system = "urn:oid:2.16.840.1.113883.2.9.4.1.1"
-* identifier.value = "HOSP-QC-001"
+* identifier[0].system = "https://nhfr.doh.gov.ph/facility"
+* identifier[0].value = "HOSP-QC-001"
+* identifier[+].system = "https://fhir.doh.gov.ph/pheref/Identifier/hcpn"
+* identifier[=].value = "HCPN-NCR-001"
 * active = true
 * type = $organization-type#prov "Healthcare Provider"
 * name = "Philippine Heart Center"
+* address.use = #work
 * address.line = "East Avenue"
-* address.city = "Quezon City"
-* address.state = "Metro Manila"
 * address.postalCode = "1100"
 * address.country = "PH"
+* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region"
+* address.extension[cityMunicipality].valueCoding = $PSGC#1381300000 "Quezon City"
+* address.extension[barangay].valueCoding = $PSGC#1380100001 "Barangay 1"

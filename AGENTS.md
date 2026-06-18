@@ -6,6 +6,7 @@
 - **Compile FSH to JSON**: `sushi .`
   - Converts FSH files to FHIR JSON resources in `fsh-generated/`
   - Fast - use for quick validation of FSH syntax
+  - Not recommended for debugging examples with terminology (Please use other below)
 
 ### Full IG Build (SUSHI + IG Publisher)
 
@@ -20,8 +21,8 @@
 - **Interactive menu**: `_build.bat` then select Option 2 or 4
 
 **Direct commands (all platforms):**
-- With terminology: `sushi . && java -jar input-cache/publisher.jar -ig .`
-- Offline (no TX): `sushi . && java -jar input-cache/publisher.jar -ig . -tx n/a`
+- With terminology: `java -jar input-cache/publisher.jar -ig .`
+- Offline (no TX): `java -jar input-cache/publisher.jar -ig . -tx n/a`
 
 ### Other Commands
 
@@ -108,6 +109,91 @@ This ensures tables receive the `.ph-table` CSS (light headers, borders, zebra s
 5. Merge only when CI is green, use squash merge, delete branch after
 
 > **Patterns:** Issue and PR structure follows [Issue Templates](https://fhirpatterns.net/ig-authoring-patterns/patterns/issue-templates/) and [PR Templates & CODEOWNERS](https://fhirpatterns.net/ig-authoring-patterns/patterns/pr-templates-and-codeowners/). Each issue type maps to a structured artifact with a [Definition-of-Done per Artifact](https://fhirpatterns.net/fhir-authoring-patterns/patterns/pl-05/) checklist.
+
+## Address Conventions — PSGC Geographic Codes
+
+PH Core provides a `PHCoreAddress` datatype profile (`input/fsh/profiles/ph-core-address.fsh`) that adds four named extension slices for Philippine Standard Geographic Codes (PSGC) to the base FHIR `Address` type:
+
+| Extension Slice | PSGC Level | Example Code |
+|---|---|---|
+| `region` | Region | `$PSGC#0600000000` "Region VI (Western Visayas)" |
+| `province` | Province | `$PSGC#0600400000` "Aklan" |
+| `cityMunicipality` | City / Municipality | `$PSGC#0600407000` "Kalibo" |
+| `barangay` | Barangay | `$PSGC#0600407013` "Poblacion" |
+
+The `$PSGC` alias resolves to `https://psa.gov.ph/classification/psgc` (defined in `input/fsh/aliases.fsh`).
+
+### Correct PSGC Address Pattern (Named Slices)
+
+Use the named extension slices inherited from `PHCoreAddress`. Never use `address.city`, `address.state`, or `address.district` — these are replaced by the PSGC extensions:
+
+```fsh
+* address.use = #work
+* address.line = "123 Hospital Street"
+* address.postalCode = "1740"
+* address.country = "PH"
+* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region"
+* address.extension[province].valueCoding = $PSGC#0402100000 "Cavite"
+* address.extension[cityMunicipality].valueCoding = $PSGC#1380200000 "City of Las Piñas"
+* address.extension[barangay].valueCoding = $PSGC#1380100001 "Barangay 1"
+```
+
+### Allowed Flat Address Fields
+
+Only these base `Address` fields may be used directly (they have no PSGC equivalent):
+
+| Field | Usage |
+|---|---|
+| `address.line` | Street address / building (repeatable, use `line[+]`) |
+| `address.postalCode` | ZIP code |
+| `address.country` | Always `"PH"` |
+| `address.use` | `#home`, `#work`, etc. |
+| `address.type` | `#physical`, `#postal`, `#both` |
+| `address.text` | Human-readable address string |
+
+### Legacy Pattern (Sequential Indexing)
+
+The ph-core examples also demonstrate a legacy sequential indexing pattern. Prefer named slices when the profile already constrains `address only PHCoreAddress`:
+
+```fsh
+// Legacy pattern — use named slices instead
+* address.extension.url = "https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay"
+* address.extension.valueCoding = $PSGC#1339000003 "Ermita"
+* address.extension[+].url = "https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality"
+* address.extension[=].valueCoding = $PSGC#1380600000 "City of Manila"
+```
+
+## Organization Identifier Conventions (NHFR + HCPN)
+
+All Organization instances in the eReferral IG must include at minimum an NHFR (National Health Facility Registry) identifier. HCPN (Health Care Provider Network) identifiers should also be present when the facility belongs to a known network. Receiving organizations must carry the same identifier systems as initiating organizations.
+
+### Identifier Systems
+
+| Identifier | System URL | Purpose |
+|---|---|---|
+| NHFR | `https://nhfr.doh.gov.ph/facility` | DOH National Health Facility Registry code |
+| HCPN | `https://fhir.doh.gov.ph/pheref/Identifier/hcpn` | Health Care Provider Network identifier |
+
+### Organization Example Pattern
+
+```fsh
+Instance: ExampleOrganizationFacility
+InstanceOf: PHCoreOrganization
+* name = "Example Health Center"
+* identifier[NHFR].system = "https://nhfr.doh.gov.ph/facility"
+* identifier[NHFR].value = "FAC-12345"
+* identifier[HCPN].system = "https://fhir.doh.gov.ph/pheref/Identifier/hcpn"
+* identifier[HCPN].value = "HCPN-WV-001"
+* address.line = "123 Hospital Road"
+* address.postalCode = "5600"
+* address.country = "PH"
+* address.extension[region].valueCoding = $PSGC#0600000000 "Region VI (Western Visayas)"
+* address.extension[province].valueCoding = $PSGC#0600400000 "Aklan"
+* address.extension[cityMunicipality].valueCoding = $PSGC#0600407000 "Kalibo"
+* address.extension[barangay].valueCoding = $PSGC#0600407013 "Poblacion"
+```
+
+> **Important:** Both initiating and receiving organization instances must include NHFR and HCPN identifiers, plus full PSGC-coded addresses. Never skip identifiers on receiving or onward-receiving facilities.
 
 ## Dependencies
 

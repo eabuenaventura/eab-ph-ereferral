@@ -21,7 +21,7 @@ Description: "Example immunization instance demonstrating routine vaccination (M
 * occurrenceDateTime = "2025-03-15"
 
 // Patient (MS) - who was immunized
-* patient = Reference(Patient/ERefPatientExample)
+* patient = Reference(ExampleERefPatient)
 
 // When record was created
 * recorded = "2025-03-15T09:30:00+08:00"
@@ -77,6 +77,3 @@ Description: "Example immunization instance demonstrating routine vaccination (M
 * protocolApplied[0].doseNumberPositiveInt = 1
 * protocolApplied[0].seriesDosesPositiveInt = 2
 
-// Text narrative
-* text.status = #generated
-* text.div = "<div xmlns='http://www.w3.org/1999/xhtml'>Routine MMR (Measles-Mumps-Rubella) vaccination administered to Juan Dela Cruz on 15 March 2025 at Quezon City Health Center No. 1. Vaccine lot: LOT-2025-MMR-0045 (expires 2026-12-31), manufactured by Serum Institute of India. Dose 1 of 2 administered subcutaneously (0.5 mL) in the left thigh by Nurse Maria Santos, RN. Funded under the national Expanded Program on Immunization (EPI).</div>"

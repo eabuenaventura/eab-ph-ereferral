@@ -8,11 +8,11 @@ Description: "Provenance record demonstrating professional signature attestation
 
 * target = Reference(ExampleERefServiceRequestMinimal)
 * recorded = "2025-03-15T09:30:00+08:00"
-* activity = $v3-ActCode#CREATE "create"
+* activity = $v3-DataOperation#CREATE "create"
 * agent[0].type = $provenance-participant-type#author "Author"
 * agent[=].who = Reference(ExampleERefPractitionerRoleMinimal)
 * agent[=].onBehalfOf = Reference(ExampleERefOrganizationMinimal)
-* signature[0].type = $signature-type#1.2.840.10065.1.12.1.5 "Signature"
+* signature[0].type = $signature-type#1.2.840.10065.1.12.1.5 "Verification Signature"
 * signature[=].when = "2025-03-15T09:30:00+08:00"
 * signature[=].who = Reference(ExampleERefPractitionerRoleMinimal)
 * signature[=].data = "dGVzdHNpZ25hdHVyZWJhc2U2NA=="
@@ -26,7 +26,7 @@ Description: "Provenance record documenting a referral status update without sig
 
 * target = Reference(ExampleERefServiceRequestMinimal)
 * recorded = "2025-03-16T14:22:00+08:00"
-* activity = $v3-ActCode#UPDATE "revise"
+* activity = $v3-DataOperation#UPDATE "revise"
 * agent[0].type = $provenance-participant-type#author "Author"
 * agent[=].who = Reference(ExampleERefPractitionerRoleMinimal)
 * agent[=].onBehalfOf = Reference(ExampleERefOrganizationMinimal)
@@ -73,13 +73,18 @@ InstanceOf: PHCoreOrganization
 Usage: #example
 Title: "Example Referring Facility (Minimal)"
 Description: "Minimal organization instance for Provenance demonstration."
-* identifier.system = "http://fhir.nhdr.gov.ph/nhfr/hospcode"
-* identifier.value = "DOH123456"
+* identifier[0].system = "https://nhfr.doh.gov.ph/facility"
+* identifier[0].value = "DOH123456"
+* identifier[+].system = "https://fhir.doh.gov.ph/pheref/Identifier/hcpn"
+* identifier[=].value = "HCPN-NCR-001"
 * name = "Rural Health Unit - Barangay Health Center"
+* address.use = #work
 * address.line = "123 Health Center Road"
-* address.city = "Quezon City"
-* address.state = "Metro Manila"
+* address.postalCode = "1100"
 * address.country = "PH"
+* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region"
+* address.extension[cityMunicipality].valueCoding = $PSGC#1381300000 "Quezon City"
+* address.extension[barangay].valueCoding = $PSGC#1380100001 "Barangay 1"
 
 Instance: ExampleERefServiceRequestMinimal
 InstanceOf: ERefServiceRequest
@@ -88,7 +93,7 @@ Title: "Example eReferral Service Request (Minimal)"
 Description: "Minimal service request instance for Provenance demonstration."
 * status = #active
 * intent = #order
-* code = $sct#103695009 "Referral to specialist"
+* code = $sct#3457005 "Patient referral"
 * subject = Reference(ExampleERefPatientMinimal)
 * authoredOn = "2025-03-15T09:30:00+08:00"
 * requester = Reference(ExampleERefPractitionerRoleMinimal)

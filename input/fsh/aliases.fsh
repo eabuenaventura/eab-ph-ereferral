@@ -21,6 +21,7 @@ Alias: $sht = https://icd.who.int/browse10/2019/en#
 Alias: $request-priority = http://hl7.org/fhir/request-priority
 Alias: $servicerequest-status-reason = http://hl7.org/fhir/service-request-status-reason
 Alias: $organization-type = http://terminology.hl7.org/CodeSystem/organization-type
+Alias: $v3-DataOperation = http://terminology.hl7.org/CodeSystem/v3-DataOperation
 Alias: $provenance-participant-type = http://terminology.hl7.org/CodeSystem/provenance-participant-type
 Alias: $signature-type = urn:iso-astm:E1762-95:2013
 

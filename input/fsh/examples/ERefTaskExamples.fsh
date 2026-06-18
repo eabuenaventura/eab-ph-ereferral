@@ -6,25 +6,9 @@
 // =============================================================================
 
 // =============================================================================
-// PRIMARY EXAMPLES: Task Workflow States
+// PRIMARY EXAMPLES: Task Workflow States (subsequent states only;
+// ExampleERefTaskRequested is in ERefIntegratedExample.fsh)
 // =============================================================================
-
-Instance: ExampleERefTaskRequested
-InstanceOf: ERefTask
-Usage: #example
-Title: "Example eReferral Task - Requested State"
-Description: "Task representing a newly created eReferral in 'requested' status. Demonstrates TDG REF-9 'Care Navigator' assignment pattern with requester populated but owner not yet assigned."
-
-* status = #requested
-* intent = #order
-* code = $sct#3457005 "Patient referral"
-* code.text = "eReferral for cardiology consultation"
-* focus = Reference(ExampleERefServiceRequestTask)
-* for = Reference(ExampleERefPatientTask)
-* requester = Reference(ExampleERefPractitionerRoleRequester)
-* authoredOn = "2025-03-15T09:30:00+08:00"
-* lastModified = "2025-03-15T09:30:00+08:00"
-* note.text = "New referral for patient with chest pain. Awaiting receiving-facility response."
 
 Instance: ExampleERefTaskReceived
 InstanceOf: ERefTask
@@ -110,7 +94,7 @@ Description: "Task representing an eReferral response where the receiving facili
 * note[1].text = "Manila General Hospital reports capacity full and directs transfer to Eastern District Medical Center."
 * output[0].type = EReferralWorkflowCS#onward-referral-request "Onward referral request"
 * output[=].valueCodeableConcept = EReferralWorkflowCS#onward-referral-request "Onward referral request"
-* output[=].valueCodeableConcept.text = "Onward ServiceRequest created: ExampleERefServiceRequestOnward"
+* output[=].valueCodeableConcept.text = "Onward ServiceRequest created (see ERefReceivingFacilityBundle)"
 
 Instance: ExampleERefTaskCompleted
 InstanceOf: ERefTask
@@ -176,13 +160,18 @@ Usage: #example
 Title: "Example Referring Facility (for Task)"
 Description: "Minimal organization instance representing the referring facility."
 
-* identifier.system = "http://fhir.nhdr.gov.ph/nhfr/hospcode"
-* identifier.value = "DOH123456"
+* identifier[0].system = "https://nhfr.doh.gov.ph/facility"
+* identifier[0].value = "DOH123456"
+* identifier[+].system = "https://fhir.doh.gov.ph/pheref/Identifier/hcpn"
+* identifier[=].value = "HCPN-NCR-001"
 * name = "Rural Health Unit - Barangay Health Center"
+* address.use = #work
 * address.line = "123 Health Center Road"
-* address.city = "Quezon City"
-* address.state = "Metro Manila"
+* address.postalCode = "1100"
 * address.country = "PH"
+* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region"
+* address.extension[cityMunicipality].valueCoding = $PSGC#1381300000 "Quezon City"
+* address.extension[barangay].valueCoding = $PSGC#1380100001 "Barangay 1"
 
 Instance: ExampleERefPractitionerRoleRequester
 InstanceOf: PHCorePractitionerRole
@@ -201,14 +190,19 @@ Usage: #example
 Title: "Example Receiving Facility (for Task)"
 Description: "Organization instance representing the receiving tertiary hospital."
 
-* identifier.system = "http://fhir.nhdr.gov.ph/nhfr/hospcode"
-* identifier.value = "DOH789012"
+* identifier[0].system = "https://nhfr.doh.gov.ph/facility"
+* identifier[0].value = "DOH789012"
+* identifier[+].system = "https://fhir.doh.gov.ph/pheref/Identifier/hcpn"
+* identifier[=].value = "HCPN-NCR-001"
 * name = "Manila General Hospital"
 * type = $organization-type#prov "Healthcare Provider"
+* address.use = #work
 * address.line = "456 Hospital Drive"
-* address.city = "Manila"
-* address.state = "Metro Manila"
+* address.postalCode = "1000"
 * address.country = "PH"
+* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region"
+* address.extension[cityMunicipality].valueCoding = $PSGC#1380600000 "City of Manila"
+* address.extension[barangay].valueCoding = $PSGC#1380100001 "Barangay 1"
 
 Instance: ExampleERefOrganizationOnwardReceiving
 InstanceOf: PHCoreOrganization
@@ -216,14 +210,19 @@ Usage: #example
 Title: "Example Onward Receiving Facility (for Task)"
 Description: "Organization instance representing the alternate receiving facility for a referred-onward response."
 
-* identifier.system = "http://fhir.nhdr.gov.ph/nhfr/hospcode"
-* identifier.value = "DOH345678"
+* identifier[0].system = "https://nhfr.doh.gov.ph/facility"
+* identifier[0].value = "DOH345678"
+* identifier[+].system = "https://fhir.doh.gov.ph/pheref/Identifier/hcpn"
+* identifier[=].value = "HCPN-NCR-001"
 * name = "Eastern District Medical Center"
 * type = $organization-type#prov "Healthcare Provider"
+* address.use = #work
 * address.line = "789 District Avenue"
-* address.city = "Pasig City"
-* address.state = "Metro Manila"
+* address.postalCode = "1600"
 * address.country = "PH"
+* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region"
+* address.extension[cityMunicipality].valueCoding = $PSGC#1381200000 "City of Pasig"
+* address.extension[barangay].valueCoding = $PSGC#1380100001 "Barangay 1"
 
 Instance: ExampleERefServiceRequestTask
 InstanceOf: ERefServiceRequest
@@ -233,7 +232,7 @@ Description: "Minimal ServiceRequest instance referenced by Task examples."
 
 * status = #active
 * intent = #order
-* code = $sct#183519001 "Referral to cardiology service"
+* code = $sct#183519002 "Referral to cardiology service"
 * subject = Reference(ExampleERefPatientTask)
 * authoredOn = "2025-03-15T09:30:00+08:00"
 * requester = Reference(ExampleERefPractitionerRoleRequester)
@@ -241,20 +240,3 @@ Description: "Minimal ServiceRequest instance referenced by Task examples."
 * reasonCode = $sct#29857009 "Chest pain"
   * text = "Chest pain on exertion, suspected unstable angina"
 
-Instance: ExampleERefServiceRequestOnward
-InstanceOf: ERefServiceRequest
-Usage: #example
-Title: "Example Onward eReferral ServiceRequest"
-Description: "ServiceRequest representing the onward referral created after the first receiving facility reports that capacity is full."
-
-* status = #active
-* intent = #order
-* replaces = Reference(ExampleERefServiceRequestTask)
-* code = $sct#183519001 "Referral to cardiology service"
-* subject = Reference(ExampleERefPatientTask)
-* authoredOn = "2025-03-15T10:15:00+08:00"
-* requester = Reference(ExampleERefPractitionerRoleRequester)
-* performer = Reference(ExampleERefOrganizationOnwardReceiving)
-* reasonCode = $sct#29857009 "Chest pain"
-  * text = "Chest pain on exertion, suspected unstable angina"
-* note.text = "Onward referral after Manila General Hospital reported capacity full and recommended Eastern District Medical Center."
