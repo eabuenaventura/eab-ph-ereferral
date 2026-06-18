@@ -126,7 +126,7 @@ The following individuals contributed to the development of the Philippine eRefe
 - Felipe Canlas
 - Noel del Castillo
 - Lester Batay-an
-- Arturo Ongkeko
+- Dir. Arturo Ongkeko
 - Dr. Thomas Niccolo Reyes
 - Dr. Sofia Lemuelle Capistrano
 - Jan Michael Herber
