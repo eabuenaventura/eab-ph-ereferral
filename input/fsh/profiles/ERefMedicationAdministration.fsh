@@ -24,7 +24,11 @@ Description: "Profile for medications administered to patients in the Philippine
 
 * subject MS
 * insert ObligationRequired
+* subject only Reference(ERefPatient)
 
+* context MS
+* insert ObligationOptional
+* context only Reference(ERefEncounter)
 
 * effective[x] MS
 * insert ObligationRequired

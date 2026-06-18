@@ -13,8 +13,7 @@ Description: "Profile for ServiceRequest resource in the Philippine eReferral co
 // TDG Row REF-8: "Initiating Facility Contact Number" -> ServiceRequest.requester (via PractitionerRole's Organization.telecom)
 * requester 1..1 MS
 * insert ObligationRequired
-
-* requester only Reference(PHCorePractitionerRole)
+* requester only Reference(ERefPractitionerRole)
 
 // TDG Row REF-3: "Date & Time of Signature" - Audit trail via Provenance (linked via relevantHistory)
 // TDG Row REF-4: "Professional Signature" - Audit trail via Provenance
@@ -31,7 +30,6 @@ Description: "Profile for ServiceRequest resource in the Philippine eReferral co
 // TDG Row REF-11: "Receiving Facility NHFR Code" -> ServiceRequest.performer -> PractitionerRole.organization.identifier
 * performer MS
 * insert ObligationOptional
-
 * performer only Reference(PHCoreOrganization or ERefPractitionerRole)
   * ^short = "Receiving facility or practitioner"
   * ^definition = "The facility or practitioner expected to perform the service. For eReferral, this is typically the receiving healthcare facility."
@@ -84,17 +82,11 @@ Description: "Profile for ServiceRequest resource in the Philippine eReferral co
 // TDG Row REF-21: "Patient Full Name" (and related patient demographics)
 * subject MS
 * insert ObligationOptional
-* subject only Reference(PHCorePatient)
+* subject only Reference(ERefPatient)
 
-// TDG Row REF-1, REF-2, REF-5-11: Requester/Performer tracking
-* requester only Reference(ERefPractitionerRole)
-* requester MS
+* encounter MS
 * insert ObligationOptional
-
-* performer only Reference(ERefPractitionerRole or PHCoreOrganization)
-* performer MS
-* insert ObligationOptional
-
+* encounter only Reference(ERefEncounter)
 
 // Free-text notes from referring practitioner (no specific TDG row)
 * note MS

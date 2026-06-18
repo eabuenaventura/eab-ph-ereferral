@@ -12,6 +12,70 @@
 // STORY 1 — INSTANCES
 // =============================================================================
 
+/**
+ * ============================================================================================
+ * PATIENT PROFILE & CLINICAL ASSESSMENT: ANA LUISA REYES
+ * 
+ * SYSTEM EVENT: Patient registration & clinical intake completed at Kalibo Health Center (KHC).
+ * PHIE STATUS: Successfully generated new Patient resource ID in the Philippine Health Information Exchange.
+ * ============================================================================================
+ * 
+ * 1. PATIENT DEMOGRAPHICS & IDENTIFIERS
+ * --------------------------------------------------------------------------------------------
+ * Name:            Ana Luisa Reyes
+ * Age / Gender:    38 years old / Female (DOB: 12 March 1988)
+ * Address:         Area 4, Brgy. Mabuhay, Kalibo, Aklan
+ * Contact:         +63-919-876-5432
+ * Companion:       Roberto Reyes (Husband)
+ * PhilHealth ID:   78-658064775-3
+ * PhilSys ID:      7731-0812-4491-0326
+ * 
+ * 2. CLINICAL ASSESSMENT & VITALS
+ * --------------------------------------------------------------------------------------------
+ * Chief Complaint:  Severe headache, dizziness, blurring of vision, chest tightness, 
+ *                   and epigastric pain persisting for two (2) days.
+ * 
+ * Pregnancy Status: Pregnant, 32 weeks AOG (G2P1)
+ * Obstetric Dates:  LMP: Nov 13, 2025 | EDD: Aug 20, 2026
+ * 
+ * Objective Vitals:
+ *   - Blood Pressure: 180/110 mmHg (Severe Hypertension)
+ *   - Heart Rate:     112 bpm
+ *   - Resp Rate:      24/min
+ *   - SpO2:           96%
+ *   - Temperature:    36.8°C
+ *   - Weight:         72 kg
+ * 
+ * Laboratory:
+ *   - Urinalysis:     Proteinuria 3+
+ * 
+ * Working Impression: G2P1(1001), Pregnancy Uterine, 32 weeks AOG, 
+ *                    High-risk pregnancy: Severe Pre-eclampsia
+ * 
+ * 3. INITIAL MEDICATION LOG
+ * --------------------------------------------------------------------------------------------
+ * - Methyldopa 250mg BID
+ * - Folic Acid 5mg OD
+ * - FeSO4 300mg OD
+ * - CaCO3 500mg TID
+ * 
+ * 4. PHeRef ELECTRONIC REFERRAL SYSTEM TRANSACTION
+ * --------------------------------------------------------------------------------------------
+ * Transaction Status: Confirmed & Transmitted (Electronic notification dispatched via EMR1)
+ * Referral Category:  Emergency
+ * Urgency Level:      Urgent (Required within 2 hours)
+ * Reason Category:    Treatment/Procedure
+ * Clinical Narrative: Severe Pre-eclampsia — requires IV antihypertensive, 
+ *                     seizure prophylaxis, and continuous maternal-fetal monitoring.
+ * 
+ * Routing Node Details:
+ *   - Origin (Referring): Kalibo Health Center 
+ *                         (NHFR: 042-CHC-0087 | Tel: (043) 756-2233)
+ *   - Provider:           Dr. Maria Villanueva, Primary Care Physician
+ *   - Destination (To):   Dr. Rafael S. Tumbokon Memorial Hospital 
+ *                         (NHFR: 042-DH-0012)
+ */
+
 // --- PATIENT — REF-21 (name), REF-22 (gender), REF-23 (birthDate) -----------
 // ---            REF-27 (address), REF-29 (contact/Next of Kin) --------------
 Instance: ExampleERefPatient
@@ -333,11 +397,11 @@ Description: "Body weight taken at Kalibo Health Center: 72 kg."
 
 // --- PROCEDURE — REF-39 Treatment Given ---------------------------------------
 // ---           Linked By: Procedure.encounter Reference(PHeRefEncounter)       -
-Instance: ExampleERefProcedureECG
+Instance: ExampleERefProcedureTreatment
 InstanceOf: ERefProcedure
 Usage: #example
 Title: "Example Procedure — Pre-referral Treatment"
-Description: "Medication administered at Kalibo Health Center prior to referral."
+Description: "Medications administered at Kalibo Health Center prior to referral (documented in note per REF-39)."
 
 * status = #completed
 * code = $sct#416608005 "Drug therapy"
@@ -376,11 +440,8 @@ Description: "Referral request from Kalibo Health Center to Dr. Rafael S. Tumbok
 * status = #active
 * intent = #order
 
-// REF-14: Referral Category — priority (Required=Yes)
-* priority = #urgent
-
-// REF-16: Reason for Referral — category (Required=Yes)
-* category = $sct#3457005 "Patient referral"
+// REF-14: Referral Category — category (Required=Yes)
+* category = $sct#73770003 "Emergency"
 
 // REF-13: Date of Referral (Required=Yes)
 * authoredOn = "2026-06-18T08:30:00+08:00"
@@ -391,8 +452,8 @@ Description: "Referral request from Kalibo Health Center to Dr. Rafael S. Tumbok
 // REF-10, REF-11: Performer (Receiving Facility via PractitionerRole)
 * performer = Reference(ExampleERefPractitionerRoleReceiving)
 
-// REF-16: Clinical reason
-* reasonCode = $sct#398254007 "Pre-eclampsia"
+// REF-16: Reason for Referral — reasonCode (Required=Yes)
+* reasonCode = $sct#71388002 "Procedure"
   * text = "Severe pre-eclampsia requiring IV antihypertensive, seizure prophylaxis, and maternal-fetal monitoring"
 
 // REF-41: Working Impression supporting the referral
@@ -591,8 +652,8 @@ Description: "Transaction bundle for the initial referral submission from Kalibo
 * entry[=].request.url = "Observation"
 
 // Procedure
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Procedure/ExampleERefProcedureECG"
-* entry[=].resource = ExampleERefProcedureECG
+* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Procedure/ExampleERefProcedureTreatment"
+* entry[=].resource = ExampleERefProcedureTreatment
 * entry[=].request.method = #POST
 * entry[=].request.url = "Procedure"
 
