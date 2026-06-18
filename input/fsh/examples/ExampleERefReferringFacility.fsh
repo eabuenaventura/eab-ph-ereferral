@@ -33,6 +33,6 @@ Description: "Example referring healthcare facility for the Philippines eReferra
 * address.line = "123 Rizal Avenue"
 * address.postalCode = "1000"
 * address.country = "PH"
-* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region"
+* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region (NCR)"
 * address.extension[cityMunicipality].valueCoding = $PSGC#1380600000 "City of Manila"
 * address.extension[barangay].valueCoding = $PSGC#1380100001 "Barangay 1"

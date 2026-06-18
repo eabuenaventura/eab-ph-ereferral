@@ -132,7 +132,7 @@ Use the named extension slices inherited from `PHCoreAddress`. Never use `addres
 * address.line = "123 Hospital Street"
 * address.postalCode = "1740"
 * address.country = "PH"
-* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region"
+* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region (NCR)"
 * address.extension[province].valueCoding = $PSGC#0402100000 "Cavite"
 * address.extension[cityMunicipality].valueCoding = $PSGC#1380200000 "City of Las Piñas"
 * address.extension[barangay].valueCoding = $PSGC#1380100001 "Barangay 1"
@@ -180,10 +180,10 @@ All Organization instances in the eReferral IG must include at minimum an NHFR (
 Instance: ExampleOrganizationFacility
 InstanceOf: PHCoreOrganization
 * name = "Example Health Center"
-* identifier[NHFR].system = "https://nhfr.doh.gov.ph/facility"
-* identifier[NHFR].value = "FAC-12345"
-* identifier[HCPN].system = "https://fhir.doh.gov.ph/pheref/Identifier/hcpn"
-* identifier[HCPN].value = "HCPN-WV-001"
+* identifier[0].system = "https://nhfr.doh.gov.ph/facility"
+* identifier[0].value = "FAC-12345"
+* identifier[+].system = "https://fhir.doh.gov.ph/pheref/Identifier/hcpn"
+* identifier[=].value = "HCPN-WV-001"
 * address.line = "123 Hospital Road"
 * address.postalCode = "5600"
 * address.country = "PH"

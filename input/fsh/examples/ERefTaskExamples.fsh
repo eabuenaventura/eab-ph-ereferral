@@ -169,7 +169,7 @@ Description: "Minimal organization instance representing the referring facility.
 * address.line = "123 Health Center Road"
 * address.postalCode = "1100"
 * address.country = "PH"
-* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region"
+* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region (NCR)"
 * address.extension[cityMunicipality].valueCoding = $PSGC#1381300000 "Quezon City"
 * address.extension[barangay].valueCoding = $PSGC#1380100001 "Barangay 1"
 
@@ -200,7 +200,7 @@ Description: "Organization instance representing the receiving tertiary hospital
 * address.line = "456 Hospital Drive"
 * address.postalCode = "1000"
 * address.country = "PH"
-* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region"
+* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region (NCR)"
 * address.extension[cityMunicipality].valueCoding = $PSGC#1380600000 "City of Manila"
 * address.extension[barangay].valueCoding = $PSGC#1380100001 "Barangay 1"
 
@@ -220,7 +220,7 @@ Description: "Organization instance representing the alternate receiving facilit
 * address.line = "789 District Avenue"
 * address.postalCode = "1600"
 * address.country = "PH"
-* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region"
+* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region (NCR)"
 * address.extension[cityMunicipality].valueCoding = $PSGC#1381200000 "City of Pasig"
 * address.extension[barangay].valueCoding = $PSGC#1380100001 "Barangay 1"
 

@@ -82,7 +82,7 @@ Description: "Minimal organization instance for Provenance demonstration."
 * address.line = "123 Health Center Road"
 * address.postalCode = "1100"
 * address.country = "PH"
-* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region"
+* address.extension[region].valueCoding = $PSGC#1300000000 "National Capital Region (NCR)"
 * address.extension[cityMunicipality].valueCoding = $PSGC#1381300000 "Quezon City"
 * address.extension[barangay].valueCoding = $PSGC#1380100001 "Barangay 1"
 
