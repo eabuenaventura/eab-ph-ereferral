@@ -114,8 +114,8 @@ This layered approach enables reuse of common PH Core definitions while addressi
 
 The following individuals contributed to the development of the Philippine eReferral Implementation Guide:
 
-- John Lemuel Dalisay, IG Lead
-- Dethalee Gabrielle Velasquez, PMO
+- John Lemuel Dalisay
+- Dethalee Gabrielle Velasquez
 - Dr. Alvin Marcelo
 - Dr. Jaime Kristoffer Punzalan
 - Dr. Paolo Miguel Baquiano
@@ -130,9 +130,9 @@ The following individuals contributed to the development of the Philippine eRefe
 - Dr. Thomas Niccolo Reyes
 - Dr. Sofia Lemuelle Capistrano
 - Jan Michael Herber
-- Gerard Paolo Villanueva, IG Authoring Lead
-- Errol Buenaventura, TDG Lead
-- Lawrence Macalalad, CDG Lead
+- Gerard Paolo Villanueva
+- Errol Buenaventura
+- Lawrence Macalalad
 - Jaylord Ambal
 
 ## Dependencies
