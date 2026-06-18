@@ -2,8 +2,13 @@ CodeSystem: PHCorePSOC
 Id: PSOC
 Title: "PSOC"
 Description: "Philippine Standard Occupational Classification (fragment — healthcare-relevant codes)"
+// NOTE: URL uses phcore namespace (per ontoserver tx.fhirlab.net).
+// Tracked in https://github.com/ph-ereferral-organization/ph-ereferral/issues/140
+// special-url workaround in sushi-config.yaml suppresses canonical mismatch.
 * ^url = "https://fhir.doh.gov.ph/phcore/CodeSystem/PSOC"
 * ^status = #active
+* ^experimental = false
+* ^caseSensitive = true
 * ^content = #fragment
 
 * #2211 "Generalist medical practitioners" "Generalist medical practitioners"

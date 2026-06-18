@@ -1,5 +1,5 @@
 // Supporting resources defined in ERefInitiatingFacilityBundle.fsh:
-//   - ExampleERefPatient, ExampleERefEncounter
+//   - ExampleERefPatient
 
 Instance: ExampleERefMedicationAdministrationAntibiotic
 InstanceOf: ERefMedicationAdministration
@@ -29,7 +29,7 @@ Description: "Example chronic medication administration (antihypertensive) demon
 * medicationReference = Reference(ExampleERefMedicationTwinact)
 * subject = Reference(ExampleERefPatient)
 * effectiveDateTime = "2026-06-18T07:00:00+08:00"
-* context = Reference(ExampleERefEncounter)
+// context removed — ExampleERefEncounter does not exist yet. Can be restored when encounter example is created.
 * performer.actor = Reference(ExampleERefPractitionerSubmission)
 * performer.function = $sct#158965000 "Medical practitioner"
 * dosage.route = $sct#26643006 "Oral route"

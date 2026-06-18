@@ -441,7 +441,10 @@ Description: "Referral request from Kalibo Health Center to Dr. Rafael S. Tumbok
 * intent = #order
 
 // REF-14: Referral Category — category (Required=Yes)
-* category = $sct#73770003 "Emergency"
+// REF-14: category.display follows SNOMED CT Preferred Term per tx.fhir.org/r4 validation.
+// Local rendering "Emergency" is in category.text. See issue #141.
+* category = $sct#73770003 "Hospital-based outpatient emergency care center"
+* category.text = "Emergency"
 
 // REF-13: Date of Referral (Required=Yes)
 * authoredOn = "2026-06-18T08:30:00+08:00"

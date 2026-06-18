@@ -189,6 +189,21 @@ menu:
 
 language: en
 #
+# ╭──────────────────────────────────IG Publisher parameters───────────────────────────────────────╮
+# │  Parameters passed to the IG Publisher via ImplementationGuide.definition.parameter.           │
+# ╰────────────────────────────────────────────────────────────────────────────────────────────────╯
+# special-url suppresses canonical URL mismatch errors for resources whose declared URL
+# intentionally differs from the IG's canonical base (https://fhir.doh.gov.ph/pheref).
+# CodeSystems PHCW/PSOC use phcore namespace per ontoserver tx.fhirlab.net (see issue #140).
+# ValueSet URLs have www. prefix + path mismatches pending ontoserver correction (see issue #140).
+parameters:
+  special-url:
+    - https://fhir.doh.gov.ph/phcore/CodeSystem/PHCW
+    - https://fhir.doh.gov.ph/phcore/CodeSystem/PSOC
+    - https://www.fhir.doh.gov.ph/pheref/ValueSet/practitioner-role
+    - https://www.fhir.doh.gov.ph/pheref/ValueSet/referral-category
+    - https://www.fhir.doh.gov.ph/pheref/ValueSet/reason-for-referral-service-type
+#
 # ╭──────────────────────────────────────────SUSHI flags───────────────────────────────────────────╮
 # │  The flags below configure aspects of how SUSHI processes FSH.                                 │
 # ╰────────────────────────────────────────────────────────────────────────────────────────────────╯
