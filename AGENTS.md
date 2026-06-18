@@ -2,27 +2,29 @@
 
 ## Build Commands
 
-### Quick Build (SUSHI only)
+### Full IG Build (IG Publisher)
+
+**macOS/Linux:**
+- **One-time build**: `./_genonce.sh` (auto-detects online/offline)
+- **Interactive menu**: `./_build.sh` then select:
+  - **Option 2**: Full build (with terminology server) - echo "2" | ./_build.sh
+  - **Option 4**: Build without TX server (offline, faster for large codesystems) - echo "4" | ./_build.sh
+
+**Windows:**
+- **One-time build**: `_genonce.bat` (auto-detects online/offline)
+- **Interactive menu**: `_build.bat` then select Option 2 or 4 - echo "2" | ./_build.bat or - echo "4" | ./_build.bat
+
+**Direct commands (all platforms):**
+- With terminology: `java -jar input-cache/publisher.jar -ig .`
+- Offline (no TX): `java -jar input-cache/publisher.jar -ig . -tx n/a`
+
+### Quick Build (SUSHI only) - Avoid
+- Optional for profile checks, but not when testing examples/ and pagecontent/ items
 - **Compile FSH to JSON**: `sushi .`
   - Converts FSH files to FHIR JSON resources in `fsh-generated/`
   - Fast - use for quick validation of FSH syntax
   - Not recommended for debugging examples with terminology (Please use other below)
 
-### Full IG Build (SUSHI + IG Publisher)
-
-**macOS/Linux:**
-- **One-time build**: `./_genonce.sh` (auto-detects online/offline)
-- **Interactive menu**: `./_build.sh` then select:
-  - **Option 2**: Full build (with terminology server)
-  - **Option 4**: Build without TX server (offline, faster for large codesystems)
-
-**Windows:**
-- **One-time build**: `_genonce.bat` (auto-detects online/offline)
-- **Interactive menu**: `_build.bat` then select Option 2 or 4
-
-**Direct commands (all platforms):**
-- With terminology: `java -jar input-cache/publisher.jar -ig .`
-- Offline (no TX): `java -jar input-cache/publisher.jar -ig . -tx n/a`
 
 ### Other Commands
 
