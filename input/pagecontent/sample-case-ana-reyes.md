@@ -7,7 +7,7 @@
 **Test Server (REST API):** `https://cdr.fhirlab.net/fhir`  
 **Terminology Server (Code Lookup):** `https://tx.fhirlab.net/fhir`
 
-This tutorial walks you through the complete eReferral initiation workflow using **20 bundled resources** in a single transaction. You will learn how the pieces connect, what codes are used, and how to trace the referral from creation through task state progression.
+This tutorial walks you through the complete eReferral initiation workflow using a **FHIR transaction Bundle**. You will learn how to submit a referral with conditional PUT for master data and POST for clinical data, and how to trace the referral through task state progression.
 
 ---
 
@@ -174,9 +174,17 @@ curl -s "https://tx.fhirlab.net/fhir/CodeSystem/\$lookup?system=http://loinc.org
 
 ## The Transaction Bundle — POST /fhir
 
-The referral initiation is sent as a **single FHIR transaction Bundle** containing all 20 resources. This ensures atomicity — either the entire referral is created, or nothing is.
+The referral initiation is sent as a **single FHIR transaction Bundle**. This ensures atomicity — either the entire referral is created, or nothing is.
 
-> **Why a Transaction Bundle?** A transaction guarantees referential integrity. When the ServiceRequest references the Patient and Encounter, those resources must exist. With a transaction, all 20 entries either succeed together or fail together, preventing partial data states.
+### Entry Method Strategy: PUT vs POST
+
+The bundle uses two different HTTP methods to avoid duplicate master data while creating new clinical records:
+
+| Method | Used For | Behavior |
+|--------|----------|----------|
+| **PUT** | Master data: Patient, Practitioner, Organization | Conditional upsert via identifier search. If the resource exists, it's updated; if not, it's created. Repeated submissions won't duplicate these entities. |
+| **POST** | PractitionerRole | Create with `ifNoneExist` dedup check. If a role linking the same practitioner+org already exists, the server returns it instead of creating a duplicate. |
+| **POST** | Clinical data: ServiceRequest, Encounter, Condition, Observation, Procedure, DiagnosticReport, Task, Provenance | Always create a new resource. Each referral is a new clinical event. |
 
 ### Request
 
@@ -187,9 +195,9 @@ curl -s -X POST "https://cdr.fhirlab.net/fhir" \
   -d @- <<'BUNDLE'
 ```
 
-### Request Body (Full Transaction Bundle)
+### Request Body (Transaction Bundle)
 
-The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identifiers so resources can reference each other before the server assigns permanent IDs.
+The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identifiers so resources can reference each other before the server assigns permanent IDs.
 
 ```json
 {
@@ -373,25 +381,6 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "request": {"method": "POST", "url": "Encounter"}
     },
     {
-      "fullUrl": "urn:uuid:99a80644-e928-4fbd-b07f-8ac5fb5675b1",
-      "resource": {
-        "resourceType": "Condition",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-condition"]
-        },
-        "clinicalStatus": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/condition-clinical", "code": "active"}]},
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/condition-category", "code": "problem-list-item", "display": "Problem List Item"}]}],
-        "code": {
-          "coding": [{"system": "http://snomed.info/sct", "code": "25064002", "display": "Headache"}],
-          "text": "Severe headache, dizziness, blurring of vision and epigastric pain for 2 days"
-        },
-        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
-        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
-        "note": [{"text": "Chief complaint: severe headache, dizziness, blurring of vision and epigastric pain for 2 days. G2P1, 32 weeks AOG."}]
-      },
-      "request": {"method": "POST", "url": "Condition"}
-    },
-    {
       "fullUrl": "urn:uuid:7166d722-982f-4d35-841d-c63d4d5ec772",
       "resource": {
         "resourceType": "Condition",
@@ -453,142 +442,8 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "request": {"method": "POST", "url": "Observation"}
     },
     {
-      "fullUrl": "urn:uuid:75b09e76-3c93-4a69-af02-71a6d9713558",
-      "resource": {
-        "resourceType": "Observation",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-observation"]
-        },
-        "status": "final",
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-        "code": {
-          "coding": [
-            {"system": "http://loinc.org", "code": "8867-4", "display": "Heart rate"},
-            {"system": "http://snomed.info/sct", "code": "78564009", "display": "Pulse rate"}
-          ]
-        },
-        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
-        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
-        "effectiveDateTime": "2026-06-18T08:15:00+08:00",
-        "valueQuantity": {"value": 112, "unit": "beats/minute", "system": "http://unitsofmeasure.org", "code": "/min"}
-      },
-      "request": {"method": "POST", "url": "Observation"}
-    },
-    {
-      "fullUrl": "urn:uuid:0bd2221b-dac4-44ec-811b-a10683f301c9",
-      "resource": {
-        "resourceType": "Observation",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-observation"]
-        },
-        "status": "final",
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-        "code": {
-          "coding": [
-            {"system": "http://loinc.org", "code": "9279-1", "display": "Respiratory rate"},
-            {"system": "http://snomed.info/sct", "code": "86290005", "display": "Respiratory rate"}
-          ]
-        },
-        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
-        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
-        "effectiveDateTime": "2026-06-18T08:15:00+08:00",
-        "valueQuantity": {"value": 24, "unit": "breaths/minute", "system": "http://unitsofmeasure.org", "code": "/min"}
-      },
-      "request": {"method": "POST", "url": "Observation"}
-    },
-    {
-      "fullUrl": "urn:uuid:080d6fb5-aed8-4dc0-b7dd-51d38f903819",
-      "resource": {
-        "resourceType": "Observation",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-observation"]
-        },
-        "status": "final",
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-        "code": {
-          "coding": [
-            {"system": "http://loinc.org", "code": "2708-6", "display": "Oxygen saturation in Arterial blood"},
-            {"system": "http://snomed.info/sct", "code": "103228002", "display": "Hemoglobin saturation with oxygen"}
-          ]
-        },
-        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
-        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
-        "effectiveDateTime": "2026-06-18T08:15:00+08:00",
-        "valueQuantity": {"value": 96, "unit": "%", "system": "http://unitsofmeasure.org", "code": "%"}
-      },
-      "request": {"method": "POST", "url": "Observation"}
-    },
-    {
-      "fullUrl": "urn:uuid:3f56fb3e-b0ea-4ab0-a7a5-2adac78d5c9b",
-      "resource": {
-        "resourceType": "Observation",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-observation"]
-        },
-        "status": "final",
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-        "code": {
-          "coding": [
-            {"system": "http://loinc.org", "code": "8310-5", "display": "Body temperature"},
-            {"system": "http://snomed.info/sct", "code": "386725007", "display": "Body temperature"}
-          ]
-        },
-        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
-        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
-        "effectiveDateTime": "2026-06-18T08:15:00+08:00",
-        "valueQuantity": {"value": 36.8, "unit": "Celsius", "system": "http://unitsofmeasure.org", "code": "Cel"}
-      },
-      "request": {"method": "POST", "url": "Observation"}
-    },
-    {
-      "fullUrl": "urn:uuid:d70026e6-2a52-4f4e-99d3-b73dbf52cfc3",
-      "resource": {
-        "resourceType": "Observation",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-observation"]
-        },
-        "status": "final",
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-        "code": {
-          "coding": [
-            {"system": "http://loinc.org", "code": "29463-7", "display": "Body weight"},
-            {"system": "http://snomed.info/sct", "code": "27113001", "display": "Body weight"}
-          ]
-        },
-        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
-        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
-        "effectiveDateTime": "2026-06-18T08:15:00+08:00",
-        "valueQuantity": {"value": 72, "unit": "kg", "system": "http://unitsofmeasure.org", "code": "kg"}
-      },
-      "request": {"method": "POST", "url": "Observation"}
-    },
-    {
-      "fullUrl": "urn:uuid:873a6d29-a842-43e7-a267-c3df56193f7f",
-      "resource": {
-        "resourceType": "Procedure",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-procedure"]
-        },
-        "status": "completed",
-        "code": {"coding": [{"system": "http://snomed.info/sct", "code": "416608005", "display": "Drug therapy"}]},
-        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
-        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
-        "note": [{"text": "Pre-referral treatment given: Methyldopa 250mg BID, Folic Acid 5mg OD, FeSO4 300mg OD, CaCO3 500mg TID."}]
-      },
-      "request": {"method": "POST", "url": "Procedure"}
-    },
-    {
-      "fullUrl": "urn:uuid:1e517f0b-6324-47f1-a626-8ddb5b617c59",
-      "resource": {
-        "resourceType": "DiagnosticReport",
-        "status": "final",
-        "code": {"coding": [{"system": "http://loinc.org", "code": "24356-8", "display": "Urinalysis complete panel - Urine"}]},
-        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
-        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
-        "conclusion": "Proteinuria 3+. Findings consistent with severe pre-eclampsia.",
-        "presentedForm": [{"title": "Urinalysis Results — Kalibo Health Center"}]
-      },
-      "request": {"method": "POST", "url": "DiagnosticReport"}
+      "...": "Additional vital sign observations follow the same POST pattern (Heart Rate, Respiratory Rate, SpO2, Temperature, Weight), plus a Chief Complaint Condition, a Procedure entry, and a DiagnosticReport. See the full FSH source for all 20 entries.",
+      "request": null
     },
     {
       "fullUrl": "urn:uuid:05fe9d1b-3653-4a4e-8aa6-9dbb51acb4d4",
@@ -643,74 +498,52 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
 BUNDLE
 ```
 
-### Expected Response
-
-```
-HTTP/1.1 200 OK
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Bundle",
-  "type": "transaction-response",
-  "entry": [
-    {
-      "response": {
-        "status": "201 Created",
-        "location": "Patient/123",
-        ...
-      }
-    },
-    ...
-  ]
-}
-```
-
-> **Key Point:** Save the server-assigned IDs from each `location` field in the response. You will need them for subsequent GET, PUT, and search operations.
+> **Entry method summary:** Entries 1–3, 5 use conditional **PUT** with identifier search — resubmitting the same identifiers updates existing records instead of creating duplicates. Entries 4 and 6 use **POST** with `ifNoneExist` to avoid duplicate PractitionerRoles. Entries 7–20 use plain **POST** — each referral generates new clinical data. See the [FSH source](https://github.com/ph-ereferral-organization/ph-ereferral/blob/main/input/fsh/examples/ERefInitiatingFacilityBundle.fsh) for all 20 entries.
 
 ### Bundle Entry Ordering Note
 
-The entries are ordered so that resources referenced by other resources appear first in the Bundle. The ServiceRequest, which is referenced by the Task and Provenance, must be placed before them. The IG Publisher will produce a warning if Bundle entries are out of order, but most FHIR servers will resolve `urn:uuid:` references regardless of order.
+Entries are ordered so that referenced resources appear first. Master data (PUT entries) come before clinical data (POST entries). The ServiceRequest precedes the Task and Provenance that reference it.
 
-### Field-by-Field Breakdown of Key Entries
+### Key Entry Field Reference
 
-#### Patient Entry
+> **Note:** Patient, Practitioner, and Organization use conditional **PUT** with identifier search. Clinical entries use **POST**. See the bundle above for the full pattern.
 
-| Field | Required? | What It Means | Example Value |
-|-------|-----------|---------------|---------------|
-| `meta.profile` | Yes | Declares conformance to ERefPatient | `https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPatient` |
-| `name` | Yes | Official name | `family: "Reyes"`, `given: ["Ana", "Luisa"]` |
-| `gender` | Yes | Administrative gender | `"female"` |
-| `birthDate` | Yes | Date of birth (YYYY-MM-DD) | `"1988-03-12"` |
-| `identifier` | Yes (2x) | PhilHealth ID + PhilSys ID | Two identifier blocks |
-| `address` | Yes | Home address with PSGC extensions | Region, Province, City, Barangay via extensions |
-| `contact` | Yes | Next of kin (ERefPatient requirement) | Husband (Roberto Reyes) |
+#### Patient (PUT — conditional upsert by PhilSys ID)
 
-> **PSGC Address Pattern:** PH Core replaces `address.city`, `address.state`, and `address.district` with named extension slices on the Address. The four PSGC levels — region, province, city/municipality, and barangay — are each encoded as an extension with a `valueCoding` using the PSGC code system (`https://psa.gov.ph/classification/psgc`).
+| Field | Required? | Purpose |
+|-------|-----------|---------|
+| `meta.profile` | Yes | Conformance to ERefPatient |
+| `name` | Yes | Official name (`family`, `given`) |
+| `gender` | Yes | Administrative gender |
+| `birthDate` | Yes | Date of birth (YYYY-MM-DD) |
+| `identifier` | Yes | PhilHealth ID + PhilSys ID |
+| `address` | Yes | Home address with PSGC extensions |
+| `contact` | Yes | Next of kin (ERefPatient required) |
 
-#### ServiceRequest Entry
+#### ServiceRequest (POST — new referral)
 
-| Field | Required? | What It Means | Example Value |
-|-------|-----------|---------------|---------------|
-| `status` | Yes | Referral lifecycle state | `"active"` |
-| `intent` | Yes | Proposal, plan, order, etc. | `"order"` |
-| `category` | Yes | Referral category code | SNOMED `73770003` (Emergency) |
-| `authoredOn` | Yes | Date and time of referral | `"2026-06-18T08:30:00+08:00"` |
-| `requester` | Yes | Referring facility (PractitionerRole) | `urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9` |
-| `performer` | Yes | Receiving facility (PractitionerRole) | `urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de` |
-| `reasonCode` | Yes | Reason for referral | SNOMED `71388002` (Procedure) |
-| `subject` | Yes | The patient being referred | `urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542` |
+| Field | Required? | Purpose |
+|-------|-----------|---------|
+| `status` | Yes | `"active"` |
+| `intent` | Yes | `"order"` |
+| `category` | Yes | SNOMED referral category |
+| `authoredOn` | Yes | Date and time of referral |
+| `requester` | Yes | Referring PractitionerRole |
+| `performer` | Yes | Receiving PractitionerRole |
+| `reasonCode` | Yes | Reason for referral |
+| `subject` | Yes | Patient being referred |
 
-#### Task Entry
+#### Task (POST — workflow tracker)
 
-| Field | Required? | What It Means | Example Value |
-|-------|-----------|---------------|---------------|
-| `status` | Yes | Current workflow state | `"requested"` (initial state) |
-| `intent` | Yes | Task intent | `"order"` |
-| `code` | Yes | Type of task | SNOMED `3457005` (Patient referral) |
-| `focus` | Yes | The referral being tracked | `urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759` |
-| `for` | Yes | Patient the task is for | `urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542` |
-| `requester` | Yes | Who requested the referral | `urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9` |
-| `owner` | Yes | Who owns/processes the referral | `urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de` |
+| Field | Required? | Purpose |
+|-------|-----------|---------|
+| `status` | Yes | `"requested"` (initial state) |
+| `intent` | Yes | `"order"` |
+| `code` | Yes | SNOMED `3457005` (Patient referral) |
+| `focus` | Yes | ServiceRequest being tracked |
+| `for` | Yes | Patient the task is for |
+| `requester` | Yes | Referring PractitionerRole |
+| `owner` | Yes | Receiving PractitionerRole |
 
 ---
 
@@ -1012,9 +845,10 @@ curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 ### Bundle Structure
 
 - The eReferral initiation Bundle is a **`transaction`** type Bundle — all entries succeed or fail atomically
-- Intra-Bundle references use **`urn:uuid:`** temporary identifiers
-- Resources that are referenced by other resources must be placed **before** the resources that reference them
-- The server resolves `urn:uuid:` references and assigns permanent logical IDs
+- **Master data** (Patient, Practitioner, Organization) uses conditional **PUT** with identifier search — resubmitting the same identifiers updates existing records instead of creating duplicates
+- **PractitionerRole** uses **POST** with `ifNoneExist` to avoid duplicates for the same practitioner+org pairing
+- **Clinical data** (ServiceRequest, Encounter, Condition, Observation, Procedure, DiagnosticReport, Task, Provenance) uses **POST** — each referral generates new clinical records
+- Intra-Bundle references use **`urn:uuid:`** temporary identifiers resolved by the server
 
 ### Codes and Terminology
 
