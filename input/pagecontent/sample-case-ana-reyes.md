@@ -208,36 +208,25 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "fullUrl": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542",
       "resource": {
         "resourceType": "Patient",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPatient"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPatient"]},
         "name": [{"use": "official", "family": "Reyes", "given": ["Ana", "Luisa"]}],
         "gender": "female",
         "birthDate": "1988-03-12",
-        "active": true,
         "identifier": [
           {"system": "http://philhealth.gov.ph/fhir/Identifier/philhealth-id", "value": "78-658064775-3"},
           {"system": "http://philsys.gov.ph/fhir/Identifier/philsys-id", "value": "7731-0812-4491-0326"}
         ],
-        "telecom": [{"system": "phone", "value": "+63-919-876-5432", "use": "mobile"}],
         "address": [{
-          "use": "home",
-          "line": ["Area 4, Barangay Mabuhay"],
-          "postalCode": "5600",
-          "country": "PH",
+          "use": "home", "line": ["Area 4, Barangay Mabuhay"], "postalCode": "5600", "country": "PH",
           "extension": [
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/region",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600000000", "display": "Region VI (Western Visayas)"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/province",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600400000", "display": "Aklan"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407000", "display": "Kalibo"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407013", "display": "Poblacion"}}
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/region", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600000000"}},
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/province", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600400000"}},
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407000"}},
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407013"}}
           ]
         }],
         "contact": [{
-          "relationship": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode", "code": "HUSB", "display": "Husband"}]}],
+          "relationship": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode", "code": "HUSB"}]}],
           "name": {"use": "official", "family": "Reyes", "given": ["Roberto"]}
         }]
       },
@@ -247,9 +236,7 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "fullUrl": "urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e",
       "resource": {
         "resourceType": "Practitioner",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner"]},
         "identifier": [{"system": "https://prc.gov.ph/", "value": "5466863"}],
         "name": [{"use": "official", "family": "Villanueva", "given": ["Maria"], "prefix": ["Dr."]}]
       },
@@ -259,9 +246,7 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "fullUrl": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b",
       "resource": {
         "resourceType": "Organization",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization"]},
         "name": "Kalibo Health Center",
         "identifier": [
           {"system": "https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code", "value": "3056"},
@@ -271,14 +256,10 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
         "address": [{
           "use": "work", "line": ["Mabini Street"], "postalCode": "5600", "country": "PH",
           "extension": [
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/region",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600000000", "display": "Region VI (Western Visayas)"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/province",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600400000", "display": "Aklan"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407000", "display": "Kalibo"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407013", "display": "Poblacion"}}
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/region", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600000000"}},
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/province", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600400000"}},
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407000"}},
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407013"}}
           ]
         }]
       },
@@ -288,9 +269,7 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "fullUrl": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9",
       "resource": {
         "resourceType": "PractitionerRole",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPractitionerRole"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPractitionerRole"]},
         "practitioner": {"reference": "urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e"},
         "organization": {"reference": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
@@ -301,28 +280,13 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "fullUrl": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126",
       "resource": {
         "resourceType": "Organization",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization"]},
         "name": "Dr. Rafael S. Tumbokon Memorial Hospital",
         "identifier": [
           {"system": "https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code", "value": "513"},
           {"system": "https://fhir.doh.gov.ph/phcore/Identifier/hcpn-code", "value": "Aklan HCPN"}
         ],
-        "telecom": [{"system": "phone", "value": "(043) 756-3124", "use": "work"}],
-        "address": [{
-          "use": "work", "line": ["National Highway"], "postalCode": "5600", "country": "PH",
-          "extension": [
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/region",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600000000", "display": "Region VI (Western Visayas)"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/province",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600400000", "display": "Aklan"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407000", "display": "Kalibo"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407013", "display": "Poblacion"}}
-          ]
-        }]
+        "telecom": [{"system": "phone", "value": "(043) 756-3124", "use": "work"}]
       },
       "request": {"method": "PUT", "url": "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"}
     },
@@ -330,9 +294,7 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "fullUrl": "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de",
       "resource": {
         "resourceType": "PractitionerRole",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPractitionerRole"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPractitionerRole"]},
         "organization": {"reference": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
@@ -342,22 +304,14 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "fullUrl": "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759",
       "resource": {
         "resourceType": "ServiceRequest",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-service-request"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-service-request"]},
         "status": "active",
         "intent": "order",
-        "category": [{
-          "coding": [{"system": "http://snomed.info/sct", "code": "73770003", "display": "Hospital-based outpatient emergency care center"}],
-          "text": "Emergency"
-        }],
+        "category": [{"coding": [{"system": "http://snomed.info/sct", "code": "73770003", "display": "Hospital-based outpatient emergency care center"}], "text": "Emergency"}],
         "authoredOn": "2026-06-18T08:30:00+08:00",
         "requester": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"},
         "performer": [{"reference": "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de"}],
-        "reasonCode": [{
-          "coding": [{"system": "http://snomed.info/sct", "code": "71388002", "display": "Procedure"}],
-          "text": "Severe pre-eclampsia requiring IV antihypertensive, seizure prophylaxis, and maternal-fetal monitoring"
-        }],
+        "reasonCode": [{"coding": [{"system": "http://snomed.info/sct", "code": "71388002", "display": "Procedure"}], "text": "Severe pre-eclampsia requiring IV antihypertensive, seizure prophylaxis, and maternal-fetal monitoring"}],
         "reasonReference": [{"reference": "urn:uuid:7166d722-982f-4d35-841d-c63d4d5ec772"}],
         "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
         "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
@@ -368,96 +322,17 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "request": {"method": "POST", "url": "ServiceRequest"}
     },
     {
-      "fullUrl": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce",
-      "resource": {
-        "resourceType": "Encounter",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-encounter"]
-        },
-        "status": "finished",
-        "class": {"system": "http://terminology.hl7.org/CodeSystem/v3-ActCode", "code": "AMB", "display": "ambulatory"},
-        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"}
-      },
-      "request": {"method": "POST", "url": "Encounter"}
-    },
-    {
-      "fullUrl": "urn:uuid:7166d722-982f-4d35-841d-c63d4d5ec772",
-      "resource": {
-        "resourceType": "Condition",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-condition"]
-        },
-        "clinicalStatus": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/condition-clinical", "code": "active"}]},
-        "verificationStatus": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/condition-ver-status", "code": "provisional", "display": "Provisional"}]},
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/condition-category", "code": "encounter-diagnosis", "display": "Encounter Diagnosis"}]}],
-        "code": {
-          "coding": [{"system": "http://snomed.info/sct", "code": "398254007", "display": "Pre-eclampsia"}],
-          "text": "Severe pre-eclampsia, 32 weeks AOG, G2P1"
-        },
-        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
-        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
-        "note": [{"text": "G2P1, 32 weeks AOG. EDD: Aug 20 2026. LMP: Nov 13 2025."}]
-      },
-      "request": {"method": "POST", "url": "Condition"}
-    },
-    {
-      "fullUrl": "urn:uuid:27ea0c24-b2e3-4f4e-ba6f-d40b4653232e",
-      "resource": {
-        "resourceType": "Observation",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-observation"]
-        },
-        "status": "final",
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-        "code": {
-          "coding": [
-            {"system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel with all children optional"},
-            {"system": "http://snomed.info/sct", "code": "75367002", "display": "Blood pressure"}
-          ]
-        },
-        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
-        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
-        "effectiveDateTime": "2026-06-18T08:15:00+08:00",
-        "component": [
-          {
-            "code": {
-              "coding": [
-                {"system": "http://loinc.org", "code": "8480-6", "display": "Systolic blood pressure"},
-                {"system": "http://snomed.info/sct", "code": "271649006", "display": "Systolic blood pressure"}
-              ]
-            },
-            "valueQuantity": {"value": 180, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-          },
-          {
-            "code": {
-              "coding": [
-                {"system": "http://loinc.org", "code": "8462-4", "display": "Diastolic blood pressure"},
-                {"system": "http://snomed.info/sct", "code": "271650006", "display": "Diastolic blood pressure"}
-              ]
-            },
-            "valueQuantity": {"value": 110, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-          }
-        ]
-      },
-      "request": {"method": "POST", "url": "Observation"}
-    },
-    {
-      "...": "Additional vital sign observations follow the same POST pattern (Heart Rate, Respiratory Rate, SpO2, Temperature, Weight), plus a Chief Complaint Condition, a Procedure entry, and a DiagnosticReport. See the full FSH source for all 20 entries.",
+      "...": "Entries 8–18: Encounter, 2 Conditions, 6 vital-sign Observations, Procedure, DiagnosticReport — all use POST. See FSH source for full details.",
       "request": null
     },
     {
       "fullUrl": "urn:uuid:05fe9d1b-3653-4a4e-8aa6-9dbb51acb4d4",
       "resource": {
         "resourceType": "Task",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-task"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-task"]},
         "status": "requested",
         "intent": "order",
-        "code": {
-          "coding": [{"system": "http://snomed.info/sct", "code": "3457005", "display": "Patient referral"}],
-          "text": "eReferral for severe pre-eclampsia management"
-        },
+        "code": {"coding": [{"system": "http://snomed.info/sct", "code": "3457005", "display": "Patient referral"}], "text": "eReferral for severe pre-eclampsia management"},
         "focus": {"reference": "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759"},
         "for": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
         "requester": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"},
@@ -472,23 +347,16 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "fullUrl": "urn:uuid:6760bfb4-3596-4568-b8ff-b487736a70f5",
       "resource": {
         "resourceType": "Provenance",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-provenance"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-provenance"]},
         "recorded": "2026-06-18T08:30:00+08:00",
         "target": [{"reference": "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759"}],
         "activity": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/v3-DataOperation", "code": "CREATE", "display": "create"}]},
-        "agent": [{
-          "type": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/provenance-participant-type", "code": "author", "display": "Author"}]},
-          "who": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"},
-          "onBehalfOf": {"reference": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"}
-        }],
+        "agent": [{"type": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/provenance-participant-type", "code": "author"}]}, "who": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"}, "onBehalfOf": {"reference": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"}}],
         "signature": [{
           "type": [{"system": "urn:iso-astm:E1762-95:2013", "code": "1.2.840.10065.1.12.1.5", "display": "Verification Signature"}],
           "when": "2026-06-18T08:30:00+08:00",
           "who": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"},
-          "data": "dGVzdHNpZ25hdHVyZWJhc2U2NA==",
-          "sigFormat": {"system": "urn:ietf:bcp:13", "code": "application/signature+xml"}
+          "data": "dGVzdHNpZ25hdHVyZWJhc2U2NA=="
         }]
       },
       "request": {"method": "POST", "url": "Provenance"}
