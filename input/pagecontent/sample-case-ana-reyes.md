@@ -1156,7 +1156,7 @@ The generated artifact pages in this IG provide the authoritative, rendered view
 
 | Profile | Artifact Page |
 |---------|---------------|
-| ERefPatient | [StructureDefinition/ERefPatient](StructureDefinition-ERefPatient.html) |
+| ERefPatient | [StructureDefinition/ERefPatient](StructureDefinition-ereferral-patient.html) |
 | ERefEncounter | [StructureDefinition/ereferral-encounter](StructureDefinition-ereferral-encounter.html) |
 | ERefCondition | [StructureDefinition/ereferral-condition](StructureDefinition-ereferral-condition.html) |
 | ERefObservation | [StructureDefinition/ereferral-observation](StructureDefinition-ereferral-observation.html) |
@@ -1164,7 +1164,7 @@ The generated artifact pages in this IG provide the authoritative, rendered view
 | ERefServiceRequest | [StructureDefinition/ereferral-service-request](StructureDefinition-ereferral-service-request.html) |
 | ERefTask | [StructureDefinition/ereferral-task](StructureDefinition-ereferral-task.html) |
 | ERefProvenance | [StructureDefinition/ereferral-provenance](StructureDefinition-ereferral-provenance.html) |
-| ERefPractitionerRole | [StructureDefinition/ERefPractitionerRole](StructureDefinition-ERefPractitionerRole.html) |
+| ERefPractitionerRole | [StructureDefinition/ERefPractitionerRole](StructureDefinition-ereferral-practitioner-role.html) |
 
 </div>
 
