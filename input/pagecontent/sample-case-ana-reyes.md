@@ -7,16 +7,16 @@
 **Test Server (REST API):** `https://cdr.fhirlab.net/fhir`  
 **Terminology Server (Code Lookup):** `https://tx.fhirlab.net/fhir`
 
-This tutorial walks you through the complete eReferral initiation workflow using **20 bundled resources** in a single transaction. You will learn how the pieces connect, what codes are used, and how to trace the referral from creation through task state progression.
+This tutorial walks you through the complete eReferral initiation workflow using a **FHIR transaction Bundle**. You will learn how to submit a referral with conditional PUT for master data and POST for clinical data, and how to trace the referral through task state progression.
 
 ---
 
 ## Table of Contents
 
 1. [The Case Scenario](#the-case-scenario)
-2. [Resource Relationship Diagram](#resource-relationship-diagram)
+2. [Reference Rules in This Bundle](#reference-rules-in-this-bundle)
 3. [Looking Up Codes at tx.fhirlab.net](#looking-up-codes-at-txfhirlabnet)
-4. [The Transaction Bundle — POST /fhir](#the-transaction-bundle--post-fhir)
+4. [The Transaction Bundle](#the-transaction-bundle)
 5. [Reading Back Resources](#reading-back-resources)
 6. [Searching for Referrals](#searching-for-referrals)
 7. [Tracing the Workflow — Task State Progression](#tracing-the-workflow--task-state-progression)
@@ -48,116 +48,16 @@ This tutorial walks you through the complete eReferral initiation workflow using
 | **Working Impression** | G2P1(1001), Pregnancy Uterine, 32 weeks AOG — Severe Pre-eclampsia |
 | **Initial Treatment** | Methyldopa 250mg BID, Folic Acid 5mg OD, FeSO₄ 300mg OD, CaCO₃ 500mg TID |
 | **Referring Provider** | Dr. Maria Villanueva, Primary Care Physician |
-| **Referring Facility** | Kalibo Health Center (NHFR: 042-CHC-0087) |
-| **Receiving Facility** | Dr. Rafael S. Tumbokon Memorial Hospital — RSTMH (NHFR: 042-DH-0012) |
+| **Referring Facility** | Kalibo Health Center (NHFR: 3056) |
+| **Receiving Facility** | Dr. Rafael S. Tumbokon Memorial Hospital — DRSTMH (NHFR: 513) |
 | **Referral Category** | Emergency |
 | **Reason Category** | Procedure |
 
 ### What This Referral Models
 
-This is a **referral initiation** — the moment Kalibo Health Center determines Ana needs higher-level care and sends the referral to RSTMH. It is modeled as a **FHIR transaction Bundle** containing 20 entries that together form a complete, self-contained referral payload.
+This is a **referral initiation** — the moment Kalibo Health Center determines Ana needs higher-level care and sends the referral to DRSTMH. It is modeled as a **FHIR transaction Bundle** containing 20 entries that together form a complete, self-contained referral payload.
 
 ---
-
-## Resource Relationship Diagram
-
-The diagram below shows how the 20 resources in the submission Bundle connect to each other. Arrows represent FHIR `reference` fields.
-
-```mermaid
-graph TD
-    subgraph "People & Places"
-        PAT[Patient<br/>Ana Reyes]
-        PRAC[Practitioner<br/>Dr. Villanueva]
-        ORG_KHC[Organization<br/>Kalibo Health Center]
-        ORG_RSTMH[Organization<br/>RSTMH]
-        PR_KHC[PractitionerRole<br/>Dr. Villanueva @ KHC]
-        PR_RSTMH[PractitionerRole<br/>Receiving @ RSTMH]
-    end
-
-    subgraph "Clinical Context"
-        ENC[Encounter<br/>KHC PCF Visit]
-        COND_CC[Condition<br/>Chief Complaint]
-        COND_DX[Condition<br/>Severe Pre-eclampsia]
-        OBS_BP[Observation<br/>BP 180/110]
-        OBS_HR[Observation<br/>HR 112]
-        OBS_RR[Observation<br/>RR 24]
-        OBS_O2[Observation<br/>SpO2 96%]
-        OBS_TEMP[Observation<br/>Temp 36.8]
-        OBS_WT[Observation<br/>Wt 72 kg]
-        PROC[Procedure<br/>Pre-referral Treatment]
-        DR[DiagnosticReport<br/>Urinalysis]
-    end
-
-    subgraph "Referral & Workflow"
-        SR[ServiceRequest<br/>eReferral to RSTMH]
-        TASK[Task<br/>Requested]
-        PROV[Provenance<br/>Signature]
-    end
-
-    PAT --> ENC
-    PRAC --> PR_KHC
-    ORG_KHC --> PR_KHC
-    ORG_RSTMH --> PR_RSTMH
-
-    ENC --> COND_CC
-    ENC --> COND_DX
-    ENC --> OBS_BP
-    ENC --> OBS_HR
-    ENC --> OBS_RR
-    ENC --> OBS_O2
-    ENC --> OBS_TEMP
-    ENC --> OBS_WT
-    ENC --> PROC
-    ENC --> DR
-    ENC --> SR
-
-    COND_CC --> PAT
-    COND_DX --> PAT
-    OBS_BP --> PAT
-    OBS_HR --> PAT
-    OBS_RR --> PAT
-    OBS_O2 --> PAT
-    OBS_TEMP --> PAT
-    OBS_WT --> PAT
-    PROC --> PAT
-    DR --> PAT
-
-    SR --> PAT
-    SR --> PR_KHC
-    SR --> PR_RSTMH
-    SR --> COND_DX
-    SR --> ENC
-
-    TASK --> SR
-    TASK --> PAT
-    TASK --> PR_KHC
-    TASK --> PR_RSTMH
-
-    PROV --> SR
-    PROV --> PR_KHC
-    PROV --> ORG_KHC
-
-    style PAT fill:#e1f5fe
-    style PRAC fill:#e8f5e9
-    style ORG_KHC fill:#fff3e0
-    style ORG_RSTMH fill:#fff3e0
-    style PR_KHC fill:#e8f5e9
-    style PR_RSTMH fill:#e8f5e9
-    style ENC fill:#f3e5f5
-    style COND_DX fill:#fce4ec
-    style COND_CC fill:#fce4ec
-    style OBS_BP fill:#fff9c4
-    style OBS_HR fill:#fff9c4
-    style OBS_RR fill:#fff9c4
-    style OBS_O2 fill:#fff9c4
-    style OBS_TEMP fill:#fff9c4
-    style OBS_WT fill:#fff9c4
-    style PROC fill:#e0f2f1
-    style DR fill:#e0f2f1
-    style SR fill:#ffebee
-    style TASK fill:#ede7f6
-    style PROV fill:#efebe9
-```
 
 ### Reference Rules in This Bundle
 
@@ -166,7 +66,7 @@ graph TD
 - The **ServiceRequest** (`performer`) points to the receiving facility's PractitionerRole
 - The **Task** (`focus`) points to the ServiceRequest and (`owner`) points to the receiving PractitionerRole
 - The **Provenance** (`target`) attests to the ServiceRequest
-- All intra-Bundle references use `urn:uuid:` temporary identifiers resolved by the server
+- All intra-Bundle references use `urn:uuid:` identifiers matching the bundle entry `fullUrl` values
 
 ---
 
@@ -272,544 +172,165 @@ curl -s "https://tx.fhirlab.net/fhir/CodeSystem/\$lookup?system=http://loinc.org
 
 ---
 
-## The Transaction Bundle — POST /fhir
+## The Transaction Bundle
 
-The referral initiation is sent as a **single FHIR transaction Bundle** containing all 20 resources. This ensures atomicity — either the entire referral is created, or nothing is.
+The referral initiation is sent as a **single FHIR transaction Bundle** — all entries succeed or fail atomically.
 
-> **Why a Transaction Bundle?** A transaction guarantees referential integrity. When the ServiceRequest references the Patient and Encounter, those resources must exist. With a transaction, all 20 entries either succeed together or fail together, preventing partial data states.
+### Conditional Update (PUT)
 
-### Request
+Master data entries use FHIR's [conditional update](https://www.hl7.org/fhir/http.html#cond-update) pattern: `PUT [ResourceType]?identifier=[system]|[value]`. When the server receives the bundle:
 
-```bash
-curl -s -X POST "https://cdr.fhirlab.net/fhir" \
-  -H "Content-Type: application/fhir+json" \
-  -H "Accept: application/fhir+json" \
-  -d @- <<'BUNDLE'
+1. It searches for an existing resource matching the identifier
+2. If found — the resource is **updated** in-place
+3. If not found — a **new** resource is created
+
+This makes repeated submissions **idempotent** — posting the same referral twice won't create duplicate Patient, Practitioner, Organization, or PractitionerRole records.
+
+### The 6 Conditional PUT Entries
+
+The full bundle contains 20 entries. The 6 master data entries below use conditional PUT. The remaining 14 clinical entries (ServiceRequest, Encounter, Conditions, Observations, Procedure, DiagnosticReport, Task, Provenance) use plain POST.
+
+#### Request
+
+```
+POST https://cdr.fhirlab.net/fhir
+Content-Type: application/fhir+json
+Accept: application/fhir+json
 ```
 
-### Request Body (Full Transaction Bundle)
+#### Request Body (Master Data Entries Only)
 
-The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identifiers so resources can reference each other before the server assigns permanent IDs.
-
-```json
+```jsonc
+// Target server: https://cdr.fhirlab.net/fhir
+// Bundle type: transaction (atomic — all-or-nothing)
+// Entry strategy: PUT + identifier → upsert master data
+//                 POST          → always-create clinical data
 {
   "resourceType": "Bundle",
   "type": "transaction",
   "entry": [
+    // ── Master Data: Conditional PUT entries (upsert via identifier) ──
     {
-      "fullUrl": "urn:uuid:patient-ana-reyes",
+      // PUT by PhilSys ID → upsert Patient
+      "fullUrl": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542",
       "resource": {
         "resourceType": "Patient",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPatient"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPatient"]},
         "name": [{"use": "official", "family": "Reyes", "given": ["Ana", "Luisa"]}],
         "gender": "female",
         "birthDate": "1988-03-12",
-        "active": true,
         "identifier": [
           {"system": "http://philhealth.gov.ph/fhir/Identifier/philhealth-id", "value": "78-658064775-3"},
           {"system": "http://philsys.gov.ph/fhir/Identifier/philsys-id", "value": "7731-0812-4491-0326"}
         ],
-        "telecom": [{"system": "phone", "value": "+63-919-876-5432", "use": "mobile"}],
         "address": [{
-          "use": "home",
-          "line": ["Area 4, Barangay Mabuhay"],
-          "postalCode": "5600",
-          "country": "PH",
+          "use": "home", "line": ["Area 4, Barangay Mabuhay"], "postalCode": "5600", "country": "PH",
           "extension": [
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/region",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600000000", "display": "Region VI (Western Visayas)"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/province",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600400000", "display": "Aklan"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407000", "display": "Kalibo"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407013", "display": "Poblacion"}}
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/region", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600000000"}},
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/province", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600400000"}},
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407000"}},
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407013"}}
           ]
         }],
         "contact": [{
-          "relationship": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode", "code": "HUSB", "display": "Husband"}]}],
+          "relationship": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode", "code": "HUSB"}]}],
           "name": {"use": "official", "family": "Reyes", "given": ["Roberto"]}
         }]
       },
-      "request": {"method": "POST", "url": "Patient"}
+      "request": {"method": "PUT", "url": "Patient?identifier=http://philsys.gov.ph/fhir/Identifier/philsys-id|7731-0812-4491-0326"}
     },
     {
-      "fullUrl": "urn:uuid:practitioner-dr-villanueva",
+      // PUT by PRC license number → upsert Practitioner
+      "fullUrl": "urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e",
       "resource": {
         "resourceType": "Practitioner",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner"]},
+        "identifier": [{"system": "https://prc.gov.ph/", "value": "5466863"}],
         "name": [{"use": "official", "family": "Villanueva", "given": ["Maria"], "prefix": ["Dr."]}]
       },
-      "request": {"method": "POST", "url": "Practitioner"}
+      "request": {"method": "PUT", "url": "Practitioner?identifier=https://prc.gov.ph/|5466863"}
     },
     {
-      "fullUrl": "urn:uuid:org-khc",
+      // PUT by NHFR code → upsert Organization (referring: KHC)
+      "fullUrl": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b",
       "resource": {
         "resourceType": "Organization",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization"]},
         "name": "Kalibo Health Center",
         "identifier": [
-          {"system": "https://nhfr.doh.gov.ph/facility", "value": "042-CHC-0087"},
-          {"system": "https://fhir.doh.gov.ph/pheref/Identifier/hcpn", "value": "HCPN-WV-001"}
+          {"system": "https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code", "value": "3056"},
+          {"system": "https://fhir.doh.gov.ph/phcore/Identifier/hcpn-code", "value": "Aklan HCPN"}
         ],
         "telecom": [{"system": "phone", "value": "(043) 756-2233", "use": "work"}],
         "address": [{
           "use": "work", "line": ["Mabini Street"], "postalCode": "5600", "country": "PH",
           "extension": [
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/region",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600000000", "display": "Region VI (Western Visayas)"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/province",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600400000", "display": "Aklan"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407000", "display": "Kalibo"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407013", "display": "Poblacion"}}
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/region", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600000000"}},
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/province", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600400000"}},
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407000"}},
+            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay", "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407013"}}
           ]
         }]
       },
-      "request": {"method": "POST", "url": "Organization"}
+      "request": {"method": "PUT", "url": "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|3056"}
     },
     {
-      "fullUrl": "urn:uuid:pr-khc",
+      // PUT by PRC ID → upsert PractitionerRole (referring: KHC, inherits Practitioner's PRC)
+      "fullUrl": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9",
       "resource": {
         "resourceType": "PractitionerRole",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPractitionerRole"]
-        },
-        "practitioner": {"reference": "urn:uuid:practitioner-dr-villanueva"},
-        "organization": {"reference": "urn:uuid:org-khc"},
+        "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPractitionerRole"]},
+        "practitioner": {"reference": "urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e"},
+        "organization": {"reference": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
-      "request": {"method": "POST", "url": "PractitionerRole"}
+      "request": {"method": "PUT", "url": "PractitionerRole?identifier=https://prc.gov.ph/|5466863"}
     },
     {
-      "fullUrl": "urn:uuid:org-rstmh",
+      // PUT by NHFR code → upsert Organization (receiving: DRSTMH)
+      "fullUrl": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126",
       "resource": {
         "resourceType": "Organization",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization"]
-        },
+        "meta": {"profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization"]},
         "name": "Dr. Rafael S. Tumbokon Memorial Hospital",
         "identifier": [
-          {"system": "https://nhfr.doh.gov.ph/facility", "value": "042-DH-0012"},
-          {"system": "https://fhir.doh.gov.ph/pheref/Identifier/hcpn", "value": "HCPN-WV-001"}
+          {"system": "https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code", "value": "513"},
+          {"system": "https://fhir.doh.gov.ph/phcore/Identifier/hcpn-code", "value": "Aklan HCPN"}
         ],
-        "telecom": [{"system": "phone", "value": "(043) 756-3124", "use": "work"}],
-        "address": [{
-          "use": "work", "line": ["National Highway"], "postalCode": "5600", "country": "PH",
-          "extension": [
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/region",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600000000", "display": "Region VI (Western Visayas)"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/province",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600400000", "display": "Aklan"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407000", "display": "Kalibo"}},
-            {"url": "https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay",
-             "valueCoding": {"system": "https://psa.gov.ph/classification/psgc", "code": "0600407013", "display": "Poblacion"}}
-          ]
-        }]
+        "telecom": [{"system": "phone", "value": "(043) 756-3124", "use": "work"}]
       },
-      "request": {"method": "POST", "url": "Organization"}
+      "request": {"method": "PUT", "url": "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"}
     },
     {
-      "fullUrl": "urn:uuid:pr-rstmh",
+      // PUT by NHFR code → upsert PractitionerRole (receiving: DRSTMH, inherits Organization's NHFR)
+      "fullUrl": "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de",
       "resource": {
         "resourceType": "PractitionerRole",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPractitionerRole"]
-        },
-        "organization": {"reference": "urn:uuid:org-rstmh"},
+        "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPractitionerRole"]},
+        "organization": {"reference": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
-      "request": {"method": "POST", "url": "PractitionerRole"}
-    },
-    {
-      "fullUrl": "urn:uuid:sr-ana-reyes",
-      "resource": {
-        "resourceType": "ServiceRequest",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-service-request"]
-        },
-        "status": "active",
-        "intent": "order",
-        "category": [{
-          "coding": [{"system": "http://snomed.info/sct", "code": "73770003", "display": "Hospital-based outpatient emergency care center"}],
-          "text": "Emergency"
-        }],
-        "authoredOn": "2026-06-18T08:30:00+08:00",
-        "requester": {"reference": "urn:uuid:pr-khc"},
-        "performer": [{"reference": "urn:uuid:pr-rstmh"}],
-        "reasonCode": [{
-          "coding": [{"system": "http://snomed.info/sct", "code": "71388002", "display": "Procedure"}],
-          "text": "Severe pre-eclampsia requiring IV antihypertensive, seizure prophylaxis, and maternal-fetal monitoring"
-        }],
-        "reasonReference": [{"reference": "urn:uuid:cond-pre-eclampsia"}],
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
-        "note": [{"text": "Ana Reyes, 38-year-old G2P1, 32 weeks AOG. BP 180/110 mmHg with severe headache, dizziness, and blurring of vision. Proteinuria 3+. Referred for urgent management of severe pre-eclampsia."}],
-        "occurrenceDateTime": "2026-06-18T08:30:00+08:00",
-        "requisition": {"system": "urn:oid:1.2.840.113619.21.1.2", "value": "REF-2026-001234"}
-      },
-      "request": {"method": "POST", "url": "ServiceRequest"}
-    },
-    {
-      "fullUrl": "urn:uuid:enc-khc",
-      "resource": {
-        "resourceType": "Encounter",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-encounter"]
-        },
-        "status": "finished",
-        "class": {"system": "http://terminology.hl7.org/CodeSystem/v3-ActCode", "code": "AMB", "display": "ambulatory"},
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"}
-      },
-      "request": {"method": "POST", "url": "Encounter"}
-    },
-    {
-      "fullUrl": "urn:uuid:cond-chief-complaint",
-      "resource": {
-        "resourceType": "Condition",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-condition"]
-        },
-        "clinicalStatus": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/condition-clinical", "code": "active"}]},
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/condition-category", "code": "problem-list-item", "display": "Problem List Item"}]}],
-        "code": {
-          "coding": [{"system": "http://snomed.info/sct", "code": "25064002", "display": "Headache"}],
-          "text": "Severe headache, dizziness, blurring of vision and epigastric pain for 2 days"
-        },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
-        "note": [{"text": "Chief complaint: severe headache, dizziness, blurring of vision and epigastric pain for 2 days. G2P1, 32 weeks AOG."}]
-      },
-      "request": {"method": "POST", "url": "Condition"}
-    },
-    {
-      "fullUrl": "urn:uuid:cond-pre-eclampsia",
-      "resource": {
-        "resourceType": "Condition",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-condition"]
-        },
-        "clinicalStatus": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/condition-clinical", "code": "active"}]},
-        "verificationStatus": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/condition-ver-status", "code": "provisional", "display": "Provisional"}]},
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/condition-category", "code": "encounter-diagnosis", "display": "Encounter Diagnosis"}]}],
-        "code": {
-          "coding": [{"system": "http://snomed.info/sct", "code": "398254007", "display": "Pre-eclampsia"}],
-          "text": "Severe pre-eclampsia, 32 weeks AOG, G2P1"
-        },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
-        "note": [{"text": "G2P1, 32 weeks AOG. EDD: Aug 20 2026. LMP: Nov 13 2025."}]
-      },
-      "request": {"method": "POST", "url": "Condition"}
-    },
-    {
-      "fullUrl": "urn:uuid:obs-bp",
-      "resource": {
-        "resourceType": "Observation",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-observation"]
-        },
-        "status": "final",
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-        "code": {
-          "coding": [
-            {"system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel with all children optional"},
-            {"system": "http://snomed.info/sct", "code": "75367002", "display": "Blood pressure"}
-          ]
-        },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
-        "effectiveDateTime": "2026-06-18T08:15:00+08:00",
-        "component": [
-          {
-            "code": {
-              "coding": [
-                {"system": "http://loinc.org", "code": "8480-6", "display": "Systolic blood pressure"},
-                {"system": "http://snomed.info/sct", "code": "271649006", "display": "Systolic blood pressure"}
-              ]
-            },
-            "valueQuantity": {"value": 180, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-          },
-          {
-            "code": {
-              "coding": [
-                {"system": "http://loinc.org", "code": "8462-4", "display": "Diastolic blood pressure"},
-                {"system": "http://snomed.info/sct", "code": "271650006", "display": "Diastolic blood pressure"}
-              ]
-            },
-            "valueQuantity": {"value": 110, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]"}
-          }
-        ]
-      },
-      "request": {"method": "POST", "url": "Observation"}
-    },
-    {
-      "fullUrl": "urn:uuid:obs-hr",
-      "resource": {
-        "resourceType": "Observation",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-observation"]
-        },
-        "status": "final",
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-        "code": {
-          "coding": [
-            {"system": "http://loinc.org", "code": "8867-4", "display": "Heart rate"},
-            {"system": "http://snomed.info/sct", "code": "78564009", "display": "Pulse rate"}
-          ]
-        },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
-        "effectiveDateTime": "2026-06-18T08:15:00+08:00",
-        "valueQuantity": {"value": 112, "unit": "beats/minute", "system": "http://unitsofmeasure.org", "code": "/min"}
-      },
-      "request": {"method": "POST", "url": "Observation"}
-    },
-    {
-      "fullUrl": "urn:uuid:obs-rr",
-      "resource": {
-        "resourceType": "Observation",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-observation"]
-        },
-        "status": "final",
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-        "code": {
-          "coding": [
-            {"system": "http://loinc.org", "code": "9279-1", "display": "Respiratory rate"},
-            {"system": "http://snomed.info/sct", "code": "86290005", "display": "Respiratory rate"}
-          ]
-        },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
-        "effectiveDateTime": "2026-06-18T08:15:00+08:00",
-        "valueQuantity": {"value": 24, "unit": "breaths/minute", "system": "http://unitsofmeasure.org", "code": "/min"}
-      },
-      "request": {"method": "POST", "url": "Observation"}
-    },
-    {
-      "fullUrl": "urn:uuid:obs-spo2",
-      "resource": {
-        "resourceType": "Observation",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-observation"]
-        },
-        "status": "final",
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-        "code": {
-          "coding": [
-            {"system": "http://loinc.org", "code": "2708-6", "display": "Oxygen saturation in Arterial blood"},
-            {"system": "http://snomed.info/sct", "code": "103228002", "display": "Hemoglobin saturation with oxygen"}
-          ]
-        },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
-        "effectiveDateTime": "2026-06-18T08:15:00+08:00",
-        "valueQuantity": {"value": 96, "unit": "%", "system": "http://unitsofmeasure.org", "code": "%"}
-      },
-      "request": {"method": "POST", "url": "Observation"}
-    },
-    {
-      "fullUrl": "urn:uuid:obs-temp",
-      "resource": {
-        "resourceType": "Observation",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-observation"]
-        },
-        "status": "final",
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-        "code": {
-          "coding": [
-            {"system": "http://loinc.org", "code": "8310-5", "display": "Body temperature"},
-            {"system": "http://snomed.info/sct", "code": "386725007", "display": "Body temperature"}
-          ]
-        },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
-        "effectiveDateTime": "2026-06-18T08:15:00+08:00",
-        "valueQuantity": {"value": 36.8, "unit": "Celsius", "system": "http://unitsofmeasure.org", "code": "Cel"}
-      },
-      "request": {"method": "POST", "url": "Observation"}
-    },
-    {
-      "fullUrl": "urn:uuid:obs-weight",
-      "resource": {
-        "resourceType": "Observation",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-observation"]
-        },
-        "status": "final",
-        "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-        "code": {
-          "coding": [
-            {"system": "http://loinc.org", "code": "29463-7", "display": "Body weight"},
-            {"system": "http://snomed.info/sct", "code": "27113001", "display": "Body weight"}
-          ]
-        },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
-        "effectiveDateTime": "2026-06-18T08:15:00+08:00",
-        "valueQuantity": {"value": 72, "unit": "kg", "system": "http://unitsofmeasure.org", "code": "kg"}
-      },
-      "request": {"method": "POST", "url": "Observation"}
-    },
-    {
-      "fullUrl": "urn:uuid:proc-treatment",
-      "resource": {
-        "resourceType": "Procedure",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-procedure"]
-        },
-        "status": "completed",
-        "code": {"coding": [{"system": "http://snomed.info/sct", "code": "416608005", "display": "Drug therapy"}]},
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
-        "note": [{"text": "Pre-referral treatment given: Methyldopa 250mg BID, Folic Acid 5mg OD, FeSO4 300mg OD, CaCO3 500mg TID."}]
-      },
-      "request": {"method": "POST", "url": "Procedure"}
-    },
-    {
-      "fullUrl": "urn:uuid:dr-urinalysis",
-      "resource": {
-        "resourceType": "DiagnosticReport",
-        "status": "final",
-        "code": {"coding": [{"system": "http://loinc.org", "code": "24356-8", "display": "Urinalysis complete panel - Urine"}]},
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
-        "conclusion": "Proteinuria 3+. Findings consistent with severe pre-eclampsia.",
-        "presentedForm": [{"title": "Urinalysis Results — Kalibo Health Center"}]
-      },
-      "request": {"method": "POST", "url": "DiagnosticReport"}
-    },
-    {
-      "fullUrl": "urn:uuid:task-referral",
-      "resource": {
-        "resourceType": "Task",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-task"]
-        },
-        "status": "requested",
-        "intent": "order",
-        "code": {
-          "coding": [{"system": "http://snomed.info/sct", "code": "3457005", "display": "Patient referral"}],
-          "text": "eReferral for severe pre-eclampsia management"
-        },
-        "focus": {"reference": "urn:uuid:sr-ana-reyes"},
-        "for": {"reference": "urn:uuid:patient-ana-reyes"},
-        "requester": {"reference": "urn:uuid:pr-khc"},
-        "owner": {"reference": "urn:uuid:pr-rstmh"},
-        "authoredOn": "2026-06-18T08:30:00+08:00",
-        "lastModified": "2026-06-18T08:30:00+08:00",
-        "note": [{"text": "New referral for Ana Reyes with severe pre-eclampsia. Awaiting RSTMH response."}]
-      },
-      "request": {"method": "POST", "url": "Task"}
-    },
-    {
-      "fullUrl": "urn:uuid:prov-signature",
-      "resource": {
-        "resourceType": "Provenance",
-        "meta": {
-          "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-provenance"]
-        },
-        "recorded": "2026-06-18T08:30:00+08:00",
-        "target": [{"reference": "urn:uuid:sr-ana-reyes"}],
-        "activity": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/v3-DataOperation", "code": "CREATE", "display": "create"}]},
-        "agent": [{
-          "type": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/provenance-participant-type", "code": "author", "display": "Author"}]},
-          "who": {"reference": "urn:uuid:pr-khc"},
-          "onBehalfOf": {"reference": "urn:uuid:org-khc"}
-        }],
-        "signature": [{
-          "type": [{"system": "urn:iso-astm:E1762-95:2013", "code": "1.2.840.10065.1.12.1.5", "display": "Verification Signature"}],
-          "when": "2026-06-18T08:30:00+08:00",
-          "who": {"reference": "urn:uuid:pr-khc"},
-          "data": "dGVzdHNpZ25hdHVyZWJhc2U2NA==",
-          "sigFormat": {"system": "urn:ietf:bcp:13", "code": "application/signature+xml"}
-        }]
-      },
-      "request": {"method": "POST", "url": "Provenance"}
+      "request": {"method": "PUT", "url": "PractitionerRole?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"}
     }
-  ]
-}
-BUNDLE
-```
-
-### Expected Response
-
-```
-HTTP/1.1 200 OK
-Content-Type: application/fhir+json
-
-{
-  "resourceType": "Bundle",
-  "type": "transaction-response",
-  "entry": [
-    {
-      "response": {
-        "status": "201 Created",
-        "location": "Patient/123",
-        ...
-      }
-    },
-    ...
+    // ── Clinical / Business Data: POST entries (new resource per referral) ──
+    // Entries 7–20 (ServiceRequest, Encounter, Conditions, Observations,
+    // Procedure, DiagnosticReport, Task, Provenance) all use POST.
+    // See the full Bundle JSON download for all 20 entries.
   ]
 }
 ```
 
-> **Key Point:** Save the server-assigned IDs from each `location` field in the response. You will need them for subsequent GET, PUT, and search operations.
+> The remaining 14 clinical entries (ServiceRequest, Encounter, Conditions, Observations, Procedure, DiagnosticReport, Task, Provenance) all use `POST` — each referral generates new clinical records. Full bundle available below.
+
+### Full Bundle Downloads
+
+- **JSON**: [`Bundle-ExampleERefSubmissionBundle.json`](Bundle-ExampleERefSubmissionBundle.json) — Download and POST directly to any FHIR server
+- **Rendered**: [`Bundle-ExampleERefSubmissionBundle.html`](Bundle-ExampleERefSubmissionBundle.html) — IG-rendered view with narrative
+- **FSH Source**: [`input/fsh/examples/ERefInitiatingFacilityBundle.fsh`](https://github.com/ph-ereferral-organization/ph-ereferral/blob/main/input/fsh/examples/ERefInitiatingFacilityBundle.fsh)
 
 ### Bundle Entry Ordering Note
 
-The entries are ordered so that resources referenced by other resources appear first in the Bundle. The ServiceRequest, which is referenced by the Task and Provenance, must be placed before them. The IG Publisher will produce a warning if Bundle entries are out of order, but most FHIR servers will resolve `urn:uuid:` references regardless of order.
-
-### Field-by-Field Breakdown of Key Entries
-
-#### Patient Entry
-
-| Field | Required? | What It Means | Example Value |
-|-------|-----------|---------------|---------------|
-| `meta.profile` | Yes | Declares conformance to ERefPatient | `https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPatient` |
-| `name` | Yes | Official name | `family: "Reyes"`, `given: ["Ana", "Luisa"]` |
-| `gender` | Yes | Administrative gender | `"female"` |
-| `birthDate` | Yes | Date of birth (YYYY-MM-DD) | `"1988-03-12"` |
-| `identifier` | Yes (2x) | PhilHealth ID + PhilSys ID | Two identifier blocks |
-| `address` | Yes | Home address with PSGC extensions | Region, Province, City, Barangay via extensions |
-| `contact` | Yes | Next of kin (ERefPatient requirement) | Husband (Roberto Reyes) |
-
-> **PSGC Address Pattern:** PH Core replaces `address.city`, `address.state`, and `address.district` with named extension slices on the Address. The four PSGC levels — region, province, city/municipality, and barangay — are each encoded as an extension with a `valueCoding` using the PSGC code system (`https://psa.gov.ph/classification/psgc`).
-
-#### ServiceRequest Entry
-
-| Field | Required? | What It Means | Example Value |
-|-------|-----------|---------------|---------------|
-| `status` | Yes | Referral lifecycle state | `"active"` |
-| `intent` | Yes | Proposal, plan, order, etc. | `"order"` |
-| `category` | Yes | Referral category code | SNOMED `73770003` (Emergency) |
-| `authoredOn` | Yes | Date and time of referral | `"2026-06-18T08:30:00+08:00"` |
-| `requester` | Yes | Referring facility (PractitionerRole) | `urn:uuid:pr-khc` |
-| `performer` | Yes | Receiving facility (PractitionerRole) | `urn:uuid:pr-rstmh` |
-| `reasonCode` | Yes | Reason for referral | SNOMED `71388002` (Procedure) |
-| `subject` | Yes | The patient being referred | `urn:uuid:patient-ana-reyes` |
-
-#### Task Entry
-
-| Field | Required? | What It Means | Example Value |
-|-------|-----------|---------------|---------------|
-| `status` | Yes | Current workflow state | `"requested"` (initial state) |
-| `intent` | Yes | Task intent | `"order"` |
-| `code` | Yes | Type of task | SNOMED `3457005` (Patient referral) |
-| `focus` | Yes | The referral being tracked | `urn:uuid:sr-ana-reyes` |
-| `for` | Yes | Patient the task is for | `urn:uuid:patient-ana-reyes` |
-| `requester` | Yes | Who requested the referral | `urn:uuid:pr-khc` |
-| `owner` | Yes | Who owns/processes the referral | `urn:uuid:pr-rstmh` |
+Entries are ordered so that referenced resources appear first. Master data (PUT entries) come before clinical data (POST entries). The ServiceRequest precedes the Task and Provenance that reference it.
 
 ---
 
@@ -819,12 +340,22 @@ After posting the Bundle, retrieve individual resources by their server-assigned
 
 ### Read a Patient
 
+```
+GET https://cdr.fhirlab.net/fhir/Patient/{patient-id}
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/Patient/{patient-id}" \
   -H "Accept: application/fhir+json" | jq .
 ```
 
 ### Read the ServiceRequest
+
+```
+GET https://cdr.fhirlab.net/fhir/ServiceRequest/{sr-id}
+Accept: application/fhir+json
+```
 
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/ServiceRequest/{sr-id}" \
@@ -833,12 +364,22 @@ curl -s "https://cdr.fhirlab.net/fhir/ServiceRequest/{sr-id}" \
 
 ### Read All Observations for the Encounter
 
+```
+GET https://cdr.fhirlab.net/fhir/Observation?encounter=Encounter/{enc-id}
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/Observation?encounter=Encounter/{enc-id}" \
   -H "Accept: application/fhir+json" | jq .
 ```
 
 ### Read the Task
+
+```
+GET https://cdr.fhirlab.net/fhir/Task/{task-id}
+Accept: application/fhir+json
+```
 
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
@@ -851,12 +392,22 @@ curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 
 ### Search for Referrals by Patient
 
+```
+GET https://cdr.fhirlab.net/fhir/ServiceRequest?subject=Patient/{patient-id}
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/ServiceRequest?subject=Patient/{patient-id}" \
   -H "Accept: application/fhir+json" | jq .
 ```
 
 ### Search for Referrals by Status
+
+```
+GET https://cdr.fhirlab.net/fhir/ServiceRequest?status=active&intent=order
+Accept: application/fhir+json
+```
 
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/ServiceRequest?status=active&intent=order" \
@@ -865,6 +416,11 @@ curl -s "https://cdr.fhirlab.net/fhir/ServiceRequest?status=active&intent=order"
 
 ### Search for Tasks by Status
 
+```
+GET https://cdr.fhirlab.net/fhir/Task?status=requested
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/Task?status=requested" \
   -H "Accept: application/fhir+json" | jq .
@@ -872,12 +428,22 @@ curl -s "https://cdr.fhirlab.net/fhir/Task?status=requested" \
 
 ### Search for Tasks by Focus (Referral)
 
+```
+GET https://cdr.fhirlab.net/fhir/Task?focus=ServiceRequest/{sr-id}
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/Task?focus=ServiceRequest/{sr-id}" \
   -H "Accept: application/fhir+json" | jq .
 ```
 
 ### Search for Conditions by Patient
+
+```
+GET https://cdr.fhirlab.net/fhir/Condition?subject=Patient/{patient-id}
+Accept: application/fhir+json
+```
 
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/Condition?subject=Patient/{patient-id}" \
@@ -911,20 +477,22 @@ The referral workflow is tracked through the **Task** resource's `status` field.
 
 ### Workflow States
 
-```mermaid
-stateDiagram-v2
-    [*] --> requested: Referral sent (initiation Bundle)
-    requested --> received: Receiving facility acknowledges
-    received --> accepted: Receiving facility accepts referral
-    accepted --> completed: Referral encounter complete
-    accepted --> rejected: Cannot accept referral
-    rejected --> [*]
-    completed --> [*]
-```
+The referral follows this state progression:
+
+1. **`requested`** — Referral sent (initiation Bundle)
+2. **`received`** — Receiving facility acknowledges
+3. **`accepted`** — Receiving facility accepts referral
+4. **`completed`** — Referral encounter complete
+5. **`rejected`** — Cannot accept referral
 
 ### Step 1: Referral Created (`requested`)
 
 This is the state after the transaction Bundle POST. The Task is created with `status = "requested"`.
+
+```
+GET https://cdr.fhirlab.net/fhir/Task/{task-id}
+Accept: application/fhir+json
+```
 
 ```bash
 # Read the Task to verify initial state
@@ -936,6 +504,35 @@ curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 ### Step 2: Receiving Facility Acknowledges (`received`)
 
 The receiving facility updates the Task to indicate receipt:
+
+```
+PUT https://cdr.fhirlab.net/fhir/Task/{task-id}
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+```
+
+```jsonc
+// Task update body — fields that change per state transition:
+//   status:       "requested" → "received" → "accepted" → "completed"
+//   lastModified: timestamp of state change
+//   note:         free-text reason for transition
+// All other fields must be kept from the original Task resource.
+{
+  "resourceType": "Task",
+  "id": "{task-id}",
+  "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-task"]},
+  "status": "received",                                              // ⬅ the target state
+  "intent": "order",
+  "code": {"coding": [{"system": "http://snomed.info/sct", "code": "3457005", "display": "Patient referral"}]},
+  "focus": {"reference": "ServiceRequest/{sr-id}"},
+  "for": {"reference": "Patient/{patient-id}"},
+  "requester": {"reference": "PractitionerRole/{pr-khc-id}"},
+  "owner": {"reference": "PractitionerRole/{pr-rstmh-id}"},
+  "authoredOn": "2026-06-18T08:30:00+08:00",
+  "lastModified": "2026-06-18T09:00:00+08:00",                     // ⬅ set to now
+  "note": [{"text": "Referral received by DRSTMH. Pending triage review."}]
+}
+```
 
 ```bash
 curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
@@ -954,13 +551,32 @@ curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
     "owner": {"reference": "PractitionerRole/{pr-rstmh-id}"},
     "authoredOn": "2026-06-18T08:30:00+08:00",
     "lastModified": "2026-06-18T09:00:00+08:00",
-    "note": [{"text": "Referral received by RSTMH. Pending triage review."}]
+    "note": [{"text": "Referral received by DRSTMH. Pending triage review."}]
   }'
 ```
 
 ### Step 3: Receiving Facility Accepts (`accepted`)
 
 After triage review, the receiving facility accepts the referral:
+
+```
+PUT https://cdr.fhirlab.net/fhir/Task/{task-id}
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+```
+
+```jsonc
+// Same body structure as Step 2 — only status and note change:
+//   status:       "accepted"
+//   lastModified: updated timestamp
+//   note:         acceptance rationale
+{
+  // ... all immutable fields from Step 2, then:
+  "status": "accepted",
+  "lastModified": "2026-06-18T09:45:00+08:00",
+  "note": [{"text": "Referral accepted. Patient will be admitted for severe pre-eclampsia management."}]
+}
+```
 
 ```bash
 curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
@@ -987,6 +603,25 @@ curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 
 After the referral encounter is complete:
 
+```
+PUT https://cdr.fhirlab.net/fhir/Task/{task-id}
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+```
+
+```jsonc
+// Same body structure as Step 2 — only status and note change:
+//   status:       "completed"
+//   lastModified: updated timestamp
+//   note:         completion summary
+{
+  // ... all immutable fields from Step 2, then:
+  "status": "completed",
+  "lastModified": "2026-06-18T14:00:00+08:00",
+  "note": [{"text": "Referral completed. Patient admitted and stabilized at DRSTMH."}]
+}
+```
+
 ```bash
 curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
   -H "Content-Type: application/fhir+json" \
@@ -1004,7 +639,7 @@ curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
     "owner": {"reference": "PractitionerRole/{pr-rstmh-id}"},
     "authoredOn": "2026-06-18T08:30:00+08:00",
     "lastModified": "2026-06-18T14:00:00+08:00",
-    "note": [{"text": "Referral completed. Patient admitted and stabilized at RSTMH."}]
+    "note": [{"text": "Referral completed. Patient admitted and stabilized at DRSTMH."}]
   }'
 ```
 
@@ -1013,6 +648,22 @@ curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 ### Using PATCH for Status Updates
 
 If your FHIR server supports PATCH, you can update only the `status` field:
+
+```
+PATCH https://cdr.fhirlab.net/fhir/Task/{task-id}
+Content-Type: application/json-patch+json
+Accept: application/fhir+json
+```
+
+```jsonc
+// JSON Patch body: only the fields that change
+// op:   "replace" — update an existing field's value
+// path: JSON Pointer to the field being changed
+[
+  {"op": "replace", "path": "/status", "value": "accepted"},
+  {"op": "replace", "path": "/lastModified", "value": "2026-06-18T09:45:00+08:00"}
+]
+```
 
 ```bash
 curl -s -X PATCH "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
@@ -1032,12 +683,40 @@ This section provides the full sequence of commands ready to copy-paste for a co
 
 ### 1. Verify Server is Available
 
+```
+GET https://cdr.fhirlab.net/fhir/metadata
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/metadata" \
   -H "Accept: application/fhir+json" | jq '.software.name'
 ```
 
 ### 2. Post the Referral Initiation Bundle
+
+```
+POST https://cdr.fhirlab.net/fhir
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+```
+
+```jsonc
+// Transaction Bundle — 20 entries, submit as a single file.
+// Master data (entries 1–6): PUT  + identifier → upsert
+// Clinical data   (entries 7–20): POST             → new resource per referral
+// Intra-bundle references use urn:uuid: matching each entry's fullUrl.
+// See "The Transaction Bundle" section above for the complete annotated JSON.
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    // entries 1–6: Patient, Practitioner, 2× Organization, 2× PractitionerRole (PUT)
+    // entries 7–20: ServiceRequest, Encounter, 2× Condition, 6× Observation,
+    //              Procedure, DiagnosticReport, Task, Provenance (POST)
+  ]
+}
+```
 
 ```bash
 curl -s -X POST "https://cdr.fhirlab.net/fhir" \
@@ -1046,7 +725,7 @@ curl -s -X POST "https://cdr.fhirlab.net/fhir" \
   -d @ana-reyes-bundle.json | jq '.entry[].response.location'
 ```
 
-Save the Bundle JSON from the [Transaction Bundle section](#request-body-full-transaction-bundle) to a file named `ana-reyes-bundle.json`, then run the command above.
+Save the full bundle JSON from [Bundle-ExampleERefSubmissionBundle.json](Bundle-ExampleERefSubmissionBundle.json) as `ana-reyes-bundle.json`, then run the command above.
 
 ### 3. Read Back Key Resources
 
@@ -1066,12 +745,35 @@ curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 
 ### 4. Search for All Referrals for This Patient
 
+```
+GET https://cdr.fhirlab.net/fhir/ServiceRequest?subject=Patient/{patient-id}
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/ServiceRequest?subject=Patient/{patient-id}" \
   -H "Accept: application/fhir+json" | jq '.total'
 ```
 
 ### 5. Trace the Workflow
+
+```
+GET https://cdr.fhirlab.net/fhir/Task/{task-id}
+Accept: application/fhir+json
+
+PATCH https://cdr.fhirlab.net/fhir/Task/{task-id}
+Content-Type: application/json-patch+json
+Accept: application/fhir+json
+```
+
+```jsonc
+// JSON Patch body per state — change "status" to advance the workflow:
+//   "requested" → "received" → "accepted" → "completed"
+[
+  {"op": "replace", "path": "/status", "value": "received"},        // ⬅ the target state
+  {"op": "replace", "path": "/lastModified", "value": "2026-06-18T09:00:00+08:00"}
+]
+```
 
 ```bash
 # Step 1: Check initial Task status
@@ -1100,6 +802,11 @@ curl -s -X PATCH "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 
 ### 6. Verify Final State
 
+```
+GET https://cdr.fhirlab.net/fhir/Task/{task-id}
+Accept: application/fhir+json
+```
+
 ```bash
 # Verify Task is completed
 curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
@@ -1114,9 +821,9 @@ curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 ### Bundle Structure
 
 - The eReferral initiation Bundle is a **`transaction`** type Bundle — all entries succeed or fail atomically
-- Intra-Bundle references use **`urn:uuid:`** temporary identifiers
-- Resources that are referenced by other resources must be placed **before** the resources that reference them
-- The server resolves `urn:uuid:` references and assigns permanent logical IDs
+- **Master data** (Patient, Practitioner, Organization, PractitionerRole) uses conditional **PUT** — resubmitting the same identifiers updates existing records. PractitionerRole inherits identifiers from its linked Practitioner (PRC) or Organization (NHFR).
+- **Clinical data** (ServiceRequest, Encounter, Condition, Observation, Procedure, DiagnosticReport, Task, Provenance) uses **POST** — each referral generates new clinical records
+- Intra-Bundle references use **`urn:uuid:`** identifiers matching entry `fullUrl` values
 
 ### Codes and Terminology
 
@@ -1156,7 +863,7 @@ The generated artifact pages in this IG provide the authoritative, rendered view
 
 | Profile | Artifact Page |
 |---------|---------------|
-| ERefPatient | [StructureDefinition/ERefPatient](StructureDefinition-ERefPatient.html) |
+| ERefPatient | [StructureDefinition/ERefPatient](StructureDefinition-ereferral-patient.html) |
 | ERefEncounter | [StructureDefinition/ereferral-encounter](StructureDefinition-ereferral-encounter.html) |
 | ERefCondition | [StructureDefinition/ereferral-condition](StructureDefinition-ereferral-condition.html) |
 | ERefObservation | [StructureDefinition/ereferral-observation](StructureDefinition-ereferral-observation.html) |
@@ -1164,7 +871,7 @@ The generated artifact pages in this IG provide the authoritative, rendered view
 | ERefServiceRequest | [StructureDefinition/ereferral-service-request](StructureDefinition-ereferral-service-request.html) |
 | ERefTask | [StructureDefinition/ereferral-task](StructureDefinition-ereferral-task.html) |
 | ERefProvenance | [StructureDefinition/ereferral-provenance](StructureDefinition-ereferral-provenance.html) |
-| ERefPractitionerRole | [StructureDefinition/ERefPractitionerRole](StructureDefinition-ERefPractitionerRole.html) |
+| ERefPractitionerRole | [StructureDefinition/ERefPractitionerRole](StructureDefinition-ereferral-practitioner-role.html) |
 
 </div>
 
@@ -1192,9 +899,9 @@ The generated artifact pages in this IG provide the authoritative, rendered view
 | Provenance | [Provenance/ExampleERefProvenanceSubmission](Provenance-ExampleERefProvenanceSubmission.html) |
 | Practitioner — Dr. Villanueva | [Practitioner/ExampleERefPractitionerSubmission](Practitioner-ExampleERefPractitionerSubmission.html) |
 | Organization — KHC | [Organization/ExampleERefOrganizationKaliboHC](Organization-ExampleERefOrganizationKaliboHC.html) |
-| Organization — RSTMH | [Organization/ExampleERefOrganizationRSTMH](Organization-ExampleERefOrganizationRSTMH.html) |
+| Organization — DRSTMH | [Organization/ExampleERefOrganizationDRSTMH](Organization-ExampleERefOrganizationDRSTMH.html) |
 | PractitionerRole — KHC | [PractitionerRole/ExampleERefPractitionerRoleSubmission](PractitionerRole-ExampleERefPractitionerRoleSubmission.html) |
-| PractitionerRole — RSTMH | [PractitionerRole/ExampleERefPractitionerRoleReceiving](PractitionerRole-ExampleERefPractitionerRoleReceiving.html) |
+| PractitionerRole — DRSTMH | [PractitionerRole/ExampleERefPractitionerRoleReceiving](PractitionerRole-ExampleERefPractitionerRoleReceiving.html) |
 
 </div>
 
