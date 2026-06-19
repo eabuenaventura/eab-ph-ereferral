@@ -190,12 +190,28 @@ This makes repeated submissions **idempotent** — posting the same referral twi
 
 The full bundle contains 20 entries. The 6 master data entries below use conditional PUT. The remaining 14 clinical entries (ServiceRequest, Encounter, Conditions, Observations, Procedure, DiagnosticReport, Task, Provenance) use plain POST.
 
-```json
+#### Request
+
+```
+POST https://cdr.fhirlab.net/fhir
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+```
+
+#### Request Body (Master Data Entries Only)
+
+```jsonc
+// Target server: https://cdr.fhirlab.net/fhir
+// Bundle type: transaction (atomic — all-or-nothing)
+// Entry strategy: PUT + identifier → upsert master data
+//                 POST          → always-create clinical data
 {
   "resourceType": "Bundle",
   "type": "transaction",
   "entry": [
+    // ── Master Data: Conditional PUT entries (upsert via identifier) ──
     {
+      // PUT by PhilSys ID → upsert Patient
       "fullUrl": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542",
       "resource": {
         "resourceType": "Patient",
@@ -224,6 +240,7 @@ The full bundle contains 20 entries. The 6 master data entries below use conditi
       "request": {"method": "PUT", "url": "Patient?identifier=http://philsys.gov.ph/fhir/Identifier/philsys-id|7731-0812-4491-0326"}
     },
     {
+      // PUT by PRC license number → upsert Practitioner
       "fullUrl": "urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e",
       "resource": {
         "resourceType": "Practitioner",
@@ -234,6 +251,7 @@ The full bundle contains 20 entries. The 6 master data entries below use conditi
       "request": {"method": "PUT", "url": "Practitioner?identifier=https://prc.gov.ph/|5466863"}
     },
     {
+      // PUT by NHFR code → upsert Organization (referring: KHC)
       "fullUrl": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b",
       "resource": {
         "resourceType": "Organization",
@@ -257,6 +275,7 @@ The full bundle contains 20 entries. The 6 master data entries below use conditi
       "request": {"method": "PUT", "url": "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|3056"}
     },
     {
+      // PUT by PRC ID → upsert PractitionerRole (referring: KHC, inherits Practitioner's PRC)
       "fullUrl": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9",
       "resource": {
         "resourceType": "PractitionerRole",
@@ -268,6 +287,7 @@ The full bundle contains 20 entries. The 6 master data entries below use conditi
       "request": {"method": "PUT", "url": "PractitionerRole?identifier=https://prc.gov.ph/|5466863"}
     },
     {
+      // PUT by NHFR code → upsert Organization (receiving: DRSTMH)
       "fullUrl": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126",
       "resource": {
         "resourceType": "Organization",
@@ -282,6 +302,7 @@ The full bundle contains 20 entries. The 6 master data entries below use conditi
       "request": {"method": "PUT", "url": "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"}
     },
     {
+      // PUT by NHFR code → upsert PractitionerRole (receiving: DRSTMH, inherits Organization's NHFR)
       "fullUrl": "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de",
       "resource": {
         "resourceType": "PractitionerRole",
@@ -291,6 +312,10 @@ The full bundle contains 20 entries. The 6 master data entries below use conditi
       },
       "request": {"method": "PUT", "url": "PractitionerRole?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"}
     }
+    // ── Clinical / Business Data: POST entries (new resource per referral) ──
+    // Entries 7–20 (ServiceRequest, Encounter, Conditions, Observations,
+    // Procedure, DiagnosticReport, Task, Provenance) all use POST.
+    // See the full Bundle JSON download for all 20 entries.
   ]
 }
 ```
@@ -315,12 +340,22 @@ After posting the Bundle, retrieve individual resources by their server-assigned
 
 ### Read a Patient
 
+```
+GET https://cdr.fhirlab.net/fhir/Patient/{patient-id}
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/Patient/{patient-id}" \
   -H "Accept: application/fhir+json" | jq .
 ```
 
 ### Read the ServiceRequest
+
+```
+GET https://cdr.fhirlab.net/fhir/ServiceRequest/{sr-id}
+Accept: application/fhir+json
+```
 
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/ServiceRequest/{sr-id}" \
@@ -329,12 +364,22 @@ curl -s "https://cdr.fhirlab.net/fhir/ServiceRequest/{sr-id}" \
 
 ### Read All Observations for the Encounter
 
+```
+GET https://cdr.fhirlab.net/fhir/Observation?encounter=Encounter/{enc-id}
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/Observation?encounter=Encounter/{enc-id}" \
   -H "Accept: application/fhir+json" | jq .
 ```
 
 ### Read the Task
+
+```
+GET https://cdr.fhirlab.net/fhir/Task/{task-id}
+Accept: application/fhir+json
+```
 
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
@@ -347,12 +392,22 @@ curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 
 ### Search for Referrals by Patient
 
+```
+GET https://cdr.fhirlab.net/fhir/ServiceRequest?subject=Patient/{patient-id}
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/ServiceRequest?subject=Patient/{patient-id}" \
   -H "Accept: application/fhir+json" | jq .
 ```
 
 ### Search for Referrals by Status
+
+```
+GET https://cdr.fhirlab.net/fhir/ServiceRequest?status=active&intent=order
+Accept: application/fhir+json
+```
 
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/ServiceRequest?status=active&intent=order" \
@@ -361,6 +416,11 @@ curl -s "https://cdr.fhirlab.net/fhir/ServiceRequest?status=active&intent=order"
 
 ### Search for Tasks by Status
 
+```
+GET https://cdr.fhirlab.net/fhir/Task?status=requested
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/Task?status=requested" \
   -H "Accept: application/fhir+json" | jq .
@@ -368,12 +428,22 @@ curl -s "https://cdr.fhirlab.net/fhir/Task?status=requested" \
 
 ### Search for Tasks by Focus (Referral)
 
+```
+GET https://cdr.fhirlab.net/fhir/Task?focus=ServiceRequest/{sr-id}
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/Task?focus=ServiceRequest/{sr-id}" \
   -H "Accept: application/fhir+json" | jq .
 ```
 
 ### Search for Conditions by Patient
+
+```
+GET https://cdr.fhirlab.net/fhir/Condition?subject=Patient/{patient-id}
+Accept: application/fhir+json
+```
 
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/Condition?subject=Patient/{patient-id}" \
@@ -419,6 +489,11 @@ The referral follows this state progression:
 
 This is the state after the transaction Bundle POST. The Task is created with `status = "requested"`.
 
+```
+GET https://cdr.fhirlab.net/fhir/Task/{task-id}
+Accept: application/fhir+json
+```
+
 ```bash
 # Read the Task to verify initial state
 curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
@@ -429,6 +504,35 @@ curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 ### Step 2: Receiving Facility Acknowledges (`received`)
 
 The receiving facility updates the Task to indicate receipt:
+
+```
+PUT https://cdr.fhirlab.net/fhir/Task/{task-id}
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+```
+
+```jsonc
+// Task update body — fields that change per state transition:
+//   status:       "requested" → "received" → "accepted" → "completed"
+//   lastModified: timestamp of state change
+//   note:         free-text reason for transition
+// All other fields must be kept from the original Task resource.
+{
+  "resourceType": "Task",
+  "id": "{task-id}",
+  "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-task"]},
+  "status": "received",                                              // ⬅ the target state
+  "intent": "order",
+  "code": {"coding": [{"system": "http://snomed.info/sct", "code": "3457005", "display": "Patient referral"}]},
+  "focus": {"reference": "ServiceRequest/{sr-id}"},
+  "for": {"reference": "Patient/{patient-id}"},
+  "requester": {"reference": "PractitionerRole/{pr-khc-id}"},
+  "owner": {"reference": "PractitionerRole/{pr-rstmh-id}"},
+  "authoredOn": "2026-06-18T08:30:00+08:00",
+  "lastModified": "2026-06-18T09:00:00+08:00",                     // ⬅ set to now
+  "note": [{"text": "Referral received by DRSTMH. Pending triage review."}]
+}
+```
 
 ```bash
 curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
@@ -455,6 +559,25 @@ curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 
 After triage review, the receiving facility accepts the referral:
 
+```
+PUT https://cdr.fhirlab.net/fhir/Task/{task-id}
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+```
+
+```jsonc
+// Same body structure as Step 2 — only status and note change:
+//   status:       "accepted"
+//   lastModified: updated timestamp
+//   note:         acceptance rationale
+{
+  // ... all immutable fields from Step 2, then:
+  "status": "accepted",
+  "lastModified": "2026-06-18T09:45:00+08:00",
+  "note": [{"text": "Referral accepted. Patient will be admitted for severe pre-eclampsia management."}]
+}
+```
+
 ```bash
 curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
   -H "Content-Type: application/fhir+json" \
@@ -479,6 +602,25 @@ curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 ### Step 4: Referral Completed (`completed`)
 
 After the referral encounter is complete:
+
+```
+PUT https://cdr.fhirlab.net/fhir/Task/{task-id}
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+```
+
+```jsonc
+// Same body structure as Step 2 — only status and note change:
+//   status:       "completed"
+//   lastModified: updated timestamp
+//   note:         completion summary
+{
+  // ... all immutable fields from Step 2, then:
+  "status": "completed",
+  "lastModified": "2026-06-18T14:00:00+08:00",
+  "note": [{"text": "Referral completed. Patient admitted and stabilized at DRSTMH."}]
+}
+```
 
 ```bash
 curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
@@ -507,6 +649,22 @@ curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 
 If your FHIR server supports PATCH, you can update only the `status` field:
 
+```
+PATCH https://cdr.fhirlab.net/fhir/Task/{task-id}
+Content-Type: application/json-patch+json
+Accept: application/fhir+json
+```
+
+```jsonc
+// JSON Patch body: only the fields that change
+// op:   "replace" — update an existing field's value
+// path: JSON Pointer to the field being changed
+[
+  {"op": "replace", "path": "/status", "value": "accepted"},
+  {"op": "replace", "path": "/lastModified", "value": "2026-06-18T09:45:00+08:00"}
+]
+```
+
 ```bash
 curl -s -X PATCH "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
   -H "Content-Type: application/json-patch+json" \
@@ -525,12 +683,40 @@ This section provides the full sequence of commands ready to copy-paste for a co
 
 ### 1. Verify Server is Available
 
+```
+GET https://cdr.fhirlab.net/fhir/metadata
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/metadata" \
   -H "Accept: application/fhir+json" | jq '.software.name'
 ```
 
 ### 2. Post the Referral Initiation Bundle
+
+```
+POST https://cdr.fhirlab.net/fhir
+Content-Type: application/fhir+json
+Accept: application/fhir+json
+```
+
+```jsonc
+// Transaction Bundle — 20 entries, submit as a single file.
+// Master data (entries 1–6): PUT  + identifier → upsert
+// Clinical data   (entries 7–20): POST             → new resource per referral
+// Intra-bundle references use urn:uuid: matching each entry's fullUrl.
+// See "The Transaction Bundle" section above for the complete annotated JSON.
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    // entries 1–6: Patient, Practitioner, 2× Organization, 2× PractitionerRole (PUT)
+    // entries 7–20: ServiceRequest, Encounter, 2× Condition, 6× Observation,
+    //              Procedure, DiagnosticReport, Task, Provenance (POST)
+  ]
+}
+```
 
 ```bash
 curl -s -X POST "https://cdr.fhirlab.net/fhir" \
@@ -559,12 +745,35 @@ curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 
 ### 4. Search for All Referrals for This Patient
 
+```
+GET https://cdr.fhirlab.net/fhir/ServiceRequest?subject=Patient/{patient-id}
+Accept: application/fhir+json
+```
+
 ```bash
 curl -s "https://cdr.fhirlab.net/fhir/ServiceRequest?subject=Patient/{patient-id}" \
   -H "Accept: application/fhir+json" | jq '.total'
 ```
 
 ### 5. Trace the Workflow
+
+```
+GET https://cdr.fhirlab.net/fhir/Task/{task-id}
+Accept: application/fhir+json
+
+PATCH https://cdr.fhirlab.net/fhir/Task/{task-id}
+Content-Type: application/json-patch+json
+Accept: application/fhir+json
+```
+
+```jsonc
+// JSON Patch body per state — change "status" to advance the workflow:
+//   "requested" → "received" → "accepted" → "completed"
+[
+  {"op": "replace", "path": "/status", "value": "received"},        // ⬅ the target state
+  {"op": "replace", "path": "/lastModified", "value": "2026-06-18T09:00:00+08:00"}
+]
+```
 
 ```bash
 # Step 1: Check initial Task status
@@ -592,6 +801,11 @@ curl -s -X PATCH "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 ```
 
 ### 6. Verify Final State
+
+```
+GET https://cdr.fhirlab.net/fhir/Task/{task-id}
+Accept: application/fhir+json
+```
 
 ```bash
 # Verify Task is completed
