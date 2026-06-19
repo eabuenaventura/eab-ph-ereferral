@@ -7,10 +7,6 @@ Id: ereferral-patient
 Title: "ERefPatient"
 Description: "Patient profile for the Philippine eReferral system. Extends PHCorePatient with additional elements specific to referral workflows. This profile supports the patient demographic requirements defined in the eReferral TDG (Technical Development Group) mapping, elements REF-21 through REF-30."
 
-* ^status = #draft
-* ^experimental = true
-* ^purpose = "To standardize patient demographic information for Philippine healthcare referrals, ensuring interoperability between referring and receiving facilities."
-
 // Inherited from PHCorePatient:
 // - identifier: PHCorePhilHealthID, PHCorePhilSysID (REF-25, REF-26)
 // - name: Patient name (REF-21)
@@ -44,14 +40,12 @@ Description: "Patient profile for the Philippine eReferral system. Extends PHCor
 // PHCorePatient already provides PSGC extensions via PHCoreAddress
 * address MS
 * insert ObligationOptional
-
 * address ^short = "Patient Address"
 * address ^definition = "Current residence address of the patient. Use PHCoreAddress extensions for PSGC-coded barangay, city/municipality, and province. (REF-27)"
 
 // Telecom requirements
 * telecom MS
 * insert ObligationOptional
-
 * telecom ^short = "Contact Number"
 * telecom ^definition = "Patient's contact information including phone numbers and email addresses. (REF-28)"
 * telecom.system from http://hl7.org/fhir/ValueSet/contact-point-system (required)

@@ -20,7 +20,6 @@ Description: "Task profile for Philippine eReferral workflow management. Tracks 
 // -----------------------------------------------------------------------------
 * intent MS
 * insert ObligationOptional
-
 * intent = #order (exactly)
 * intent ^short = "Fixed to 'order' for referrals"
 * intent ^definition = "The intent is fixed to 'order' as eReferral tasks represent actionable orders for services to be performed by receiving facilities."
@@ -31,10 +30,7 @@ Description: "Task profile for Philippine eReferral workflow management. Tracks 
 // -----------------------------------------------------------------------------
 * focus 1..1 MS
 * insert ObligationRequired
-
 * focus only Reference(ERefServiceRequest)
-* focus ^short = "Reference to the ServiceRequest being tracked"
-* focus ^definition = "The ServiceRequest that this task is tracking through the eReferral workflow. Required for all eReferral tasks."
 
 // -----------------------------------------------------------------------------
 // requester: PH Core has 0..1 (NOT MS), TDG requires 1..1 MS
@@ -42,10 +38,9 @@ Description: "Task profile for Philippine eReferral workflow management. Tracks 
 // -----------------------------------------------------------------------------
 * requester 1..1 MS
 * insert ObligationRequired
-
-* requester only Reference(PHCorePractitioner or PHCorePractitionerRole or PHCoreOrganization)
+* requester only Reference(ERefPractitionerRole or PHCorePractitioner or PHCoreOrganization)
 * requester ^short = "Requesting practitioner or facility"
-* requester ^definition = "The practitioner or facility that created the referral task. Represents the initiating side of the eReferral workflow."
+* requester ^definition = "The practitioner or facility that created the referral task. Represents the initiating side of the eReferral workflow. PractitionerRole Preferred to associate Organization and Practitioner"
 
 // -----------------------------------------------------------------------------
 // owner: PH Core has 0..1 (NOT MS), TDG requires 0..1 MS
@@ -57,27 +52,6 @@ Description: "Task profile for Philippine eReferral workflow management. Tracks 
 * owner only Reference(PHCorePractitioner or PHCorePractitionerRole or PHCoreOrganization)
 * owner ^short = "Assigned care navigator or receiving facility"
 * owner ^definition = "The practitioner, care navigator, or facility responsible for executing the referral task. TDG REF-9: 'Care Navigator' assignment."
-
-// -----------------------------------------------------------------------------
-// businessStatus: receiving-facility response terminology
-// Task.status carries the standard FHIR workflow state; businessStatus carries
-// the policy-facing response term used by implementers.
-// -----------------------------------------------------------------------------
-* businessStatus MS
-* insert ObligationOptional
-
-* businessStatus from EReferralReceivingResponse (extensible)
-* businessStatus ^short = "Receiving-facility response"
-* businessStatus ^definition = "The receiving facility response after referral receipt. Uses local eReferral terms for received, accepted, rejected, or referred onward while Task.status remains the standard FHIR Task lifecycle status."
-
-// -----------------------------------------------------------------------------
-// statusReason: reason or instruction attached to the response
-// -----------------------------------------------------------------------------
-* statusReason MS
-* insert ObligationOptional
-
-* statusReason ^short = "Reason for current workflow status"
-* statusReason ^definition = "Reason or instruction associated with the receiving facility response, such as capacity full or other instructions."
 
 // -----------------------------------------------------------------------------
 // authoredOn: PH Core has 0..1 (NOT MS), TDG requires 0..1 MS
@@ -100,18 +74,12 @@ Description: "Task profile for Philippine eReferral workflow management. Tracks 
 * lastModified ^definition = "The date and time when the eReferral task was last modified."
 
 // -----------------------------------------------------------------------------
-// output: response artifacts, including onward referral details
+// Recommended Link back to Patient to use the search parameter
 // -----------------------------------------------------------------------------
-* output MS
-* insert ObligationOptional
 
-* output ^short = "Receiving response output"
-* output ^definition = "Structured outputs from the receiving facility response. For referred-onward responses, this may identify that an onward referral request was created; the onward ServiceRequest should use ServiceRequest.replaces to link back to the prior request."
-* output.type MS
+* for MS
 * insert ObligationOptional
-
-* output.value[x] MS
-* insert ObligationOptional
+* for only Reference(ERefPatient)
 
 
 // =============================================================================
