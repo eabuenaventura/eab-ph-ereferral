@@ -197,6 +197,10 @@ Description: "Links Dr. Maria Villanueva to Kalibo Health Center as a primary ca
 * organization.reference = "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"
 * code = $sct#158965000 "Medical practitioner"
 
+// Inherited identifier from Practitioner (PRC) for conditional PUT
+* identifier.system = "https://prc.gov.ph/"
+* identifier.value = "5466863"
+
 
 // --- PRACTITIONERROLE (Receiving) — REF-9/10/11 Care Navigator + Facility -----
 // Practitioner not yet assigned; organization carries the receiving facility
@@ -208,6 +212,10 @@ Description: "PractitionerRole representing the receiving facility at DRSTMH for
 
 * organization.reference = "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"
 * code = $sct#158965000 "Medical practitioner"
+
+// Inherited identifier from Organization (NHFR) for conditional PUT
+* identifier.system = "https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code"
+* identifier.value = "513"
 
 
 // --- ORGANIZATION (Receiving) — REF-10 Name (Yes), REF-11 NHFR (Yes) ---------
@@ -554,19 +562,18 @@ Description: "Provenance record with professional signature for Ana Reyes' refer
 // SUBMISSION BUNDLE: Initiating Facility (KHC → DRSTMH)
 //
 // Transaction entry pattern:
-//   PUT  + conditional identifier  → master/reference data (upsert: create or update)
-//   POST + ifNoneExist            → PractitionerRole (dedup check before create)
-//   POST                          → clinical/business data (always create new)
+//   PUT  + identifier → master/reference data (upsert: create or update)
+//   POST             → clinical/business data (always create new)
 //
 // Why PUT for master data?
-//   Repeated submission of the same Patient, Practitioner, or Organization should
-//   update the existing record, not create duplicates. Conditional PUT with an
-//   identifier search parameter achieves idempotent upsert semantics.
+//   Repeated submission of the same Patient, Practitioner, Organization, or
+//   PractitionerRole should update the existing record, not create duplicates.
+//   Conditional PUT with an identifier achieves idempotent upsert semantics.
 //
-// Why POST + ifNoneExist for PractitionerRole?
-//   PractitionerRole has no single identifier suitable for conditional PUT.
-//   ifNoneExist searches by practitioner+org before creating, avoiding duplicates
-//   when the same practitioner-org pairing is resubmitted.
+// Why inherited identifiers for PractitionerRole?
+//   PractitionerRole inherits the Practitioner's PRC identifier (KHC) or the
+//   Organization's NHFR identifier (DRSTMH), enabling direct conditional PUT
+//   without chained search parameters.
 //
 // Why POST for clinical/business data?
 //   Each referral represents a new clinical event. Observations, Conditions,
@@ -614,21 +621,23 @@ Description: "Transaction bundle for the initial referral submission from Kalibo
 * entry[=].request.method = #PUT
 * entry[=].request.url = "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"
 
-// ---- PractitionerRole: POST with ifNoneExist (dedup check before create) -----
+// ---- PractitionerRole: Conditional PUT with inherited identifiers -----------------
+//
+//   PR KHC inherits the Practitioner's PRC identifier.
+//   PR DRSTMH inherits the Organization's NHFR identifier.
+//   A direct identifier match is simpler and more reliable than chained search.
 
-// PractitionerRole (Referring: KHC) — avoids duplicates for same practitioner+org
+// PR KHC — resubmission matches by PRC ID (inherited from Practitioner)
 * entry[+].fullUrl = "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"
 * entry[=].resource = ExampleERefPractitionerRoleSubmission
-* entry[=].request.method = #POST
-* entry[=].request.url = "PractitionerRole"
-* entry[=].request.ifNoneExist = "PractitionerRole?practitioner=urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e&organization=urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"
+* entry[=].request.method = #PUT
+* entry[=].request.url = "PractitionerRole?identifier=https://prc.gov.ph/|5466863"
 
-// PractitionerRole (Receiving: DRSTMH) — avoids duplicates for same org (no practitioner assigned yet)
+// PR DRSTMH — resubmission matches by NHFR code (inherited from Organization)
 * entry[+].fullUrl = "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de"
 * entry[=].resource = ExampleERefPractitionerRoleReceiving
-* entry[=].request.method = #POST
-* entry[=].request.url = "PractitionerRole"
-* entry[=].request.ifNoneExist = "PractitionerRole?organization=urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"
+* entry[=].request.method = #PUT
+* entry[=].request.url = "PractitionerRole?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"
 
 // ---- Clinical / Business Data: Always POST (new resources per referral) ------
 

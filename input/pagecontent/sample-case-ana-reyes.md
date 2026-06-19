@@ -182,8 +182,7 @@ The bundle uses two different HTTP methods to avoid duplicate master data while 
 
 | Method | Used For | Behavior |
 |--------|----------|----------|
-| **PUT** | Master data: Patient, Practitioner, Organization | Conditional upsert via identifier search. If the resource exists, it's updated; if not, it's created. Repeated submissions won't duplicate these entities. |
-| **POST** | PractitionerRole | Create with `ifNoneExist` dedup check. If a role linking the same practitioner+org already exists, the server returns it instead of creating a duplicate. |
+| **PUT** | Master data: Patient, Practitioner, Organization, PractitionerRole | Conditional upsert via identifier. PractitionerRole inherits the Practitioner's PRC ID (KHC) or the Organization's NHFR code (DRSTMH). Repeated submissions update existing records instead of creating duplicates. |
 | **POST** | Clinical data: ServiceRequest, Encounter, Condition, Observation, Procedure, DiagnosticReport, Task, Provenance | Always create a new resource. Each referral is a new clinical event. |
 
 ### Request
@@ -274,7 +273,7 @@ The complete bundle below is ready to POST. Each entry's `fullUrl` matches its `
         "organization": {"reference": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
-      "request": {"method": "POST", "url": "PractitionerRole", "ifNoneExist": "PractitionerRole?practitioner=Practitioner/ExampleERefPractitionerSubmission&organization=Organization/ExampleERefOrganizationKaliboHC"}
+      "request": {"method": "PUT", "url": "PractitionerRole?identifier=https://prc.gov.ph/|5466863"}
     },
     {
       "fullUrl": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126",
@@ -298,7 +297,7 @@ The complete bundle below is ready to POST. Each entry's `fullUrl` matches its `
         "organization": {"reference": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
-      "request": {"method": "POST", "url": "PractitionerRole", "ifNoneExist": "PractitionerRole?organization=Organization/ExampleERefOrganizationDRSTMH"}
+      "request": {"method": "PUT", "url": "PractitionerRole?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"}
     },
     {
       "fullUrl": "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759",
@@ -366,7 +365,7 @@ The complete bundle below is ready to POST. Each entry's `fullUrl` matches its `
 BUNDLE
 ```
 
-> **Entry method summary:** Entries 1–3, 5 use conditional **PUT** with identifier search — resubmitting the same identifiers updates existing records instead of creating duplicates. Entries 4 and 6 use **POST** with `ifNoneExist` to avoid duplicate PractitionerRoles. Entries 7–20 use plain **POST** — each referral generates new clinical data. See the [FSH source](https://github.com/ph-ereferral-organization/ph-ereferral/blob/main/input/fsh/examples/ERefInitiatingFacilityBundle.fsh) for all 20 entries.
+> **Entry method summary:** Entries 1–6 use conditional **PUT** — resubmitting the same identifiers updates existing records. PractitionerRole inherits identifiers from its linked Practitioner (PRC) or Organization (NHFR). Entries 7–20 use plain **POST** for new clinical data. See the [FSH source](https://github.com/ph-ereferral-organization/ph-ereferral/blob/main/input/fsh/examples/ERefInitiatingFacilityBundle.fsh) for all 20 entries.
 
 ### Bundle Entry Ordering Note
 
@@ -713,8 +712,7 @@ curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 ### Bundle Structure
 
 - The eReferral initiation Bundle is a **`transaction`** type Bundle — all entries succeed or fail atomically
-- **Master data** (Patient, Practitioner, Organization) uses conditional **PUT** with identifier search — resubmitting the same identifiers updates existing records instead of creating duplicates
-- **PractitionerRole** uses **POST** with `ifNoneExist` to avoid duplicates for the same practitioner+org pairing
+- **Master data** (Patient, Practitioner, Organization, PractitionerRole) uses conditional **PUT** — resubmitting the same identifiers updates existing records. PractitionerRole inherits identifiers from its linked Practitioner (PRC) or Organization (NHFR).
 - **Clinical data** (ServiceRequest, Encounter, Condition, Observation, Procedure, DiagnosticReport, Task, Provenance) uses **POST** — each referral generates new clinical records
 - Intra-Bundle references use **`urn:uuid:`** identifiers matching entry `fullUrl` values
 
