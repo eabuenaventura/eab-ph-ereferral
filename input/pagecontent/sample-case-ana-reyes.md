@@ -14,7 +14,7 @@ This tutorial walks you through the complete eReferral initiation workflow using
 ## Table of Contents
 
 1. [The Case Scenario](#the-case-scenario)
-2. [Resource Relationship Diagram](#resource-relationship-diagram)
+2. [Reference Rules in This Bundle](#reference-rules-in-this-bundle)
 3. [Looking Up Codes at tx.fhirlab.net](#looking-up-codes-at-txfhirlabnet)
 4. [The Transaction Bundle — POST /fhir](#the-transaction-bundle--post-fhir)
 5. [Reading Back Resources](#reading-back-resources)
@@ -58,106 +58,6 @@ This tutorial walks you through the complete eReferral initiation workflow using
 This is a **referral initiation** — the moment Kalibo Health Center determines Ana needs higher-level care and sends the referral to RSTMH. It is modeled as a **FHIR transaction Bundle** containing 20 entries that together form a complete, self-contained referral payload.
 
 ---
-
-## Resource Relationship Diagram
-
-The diagram below shows how the 20 resources in the submission Bundle connect to each other. Arrows represent FHIR `reference` fields.
-
-```mermaid
-graph TD
-    subgraph "People & Places"
-        PAT[Patient<br/>Ana Reyes]
-        PRAC[Practitioner<br/>Dr. Villanueva]
-        ORG_KHC[Organization<br/>Kalibo Health Center]
-        ORG_RSTMH[Organization<br/>RSTMH]
-        PR_KHC[PractitionerRole<br/>Dr. Villanueva @ KHC]
-        PR_RSTMH[PractitionerRole<br/>Receiving @ RSTMH]
-    end
-
-    subgraph "Clinical Context"
-        ENC[Encounter<br/>KHC PCF Visit]
-        COND_CC[Condition<br/>Chief Complaint]
-        COND_DX[Condition<br/>Severe Pre-eclampsia]
-        OBS_BP[Observation<br/>BP 180/110]
-        OBS_HR[Observation<br/>HR 112]
-        OBS_RR[Observation<br/>RR 24]
-        OBS_O2[Observation<br/>SpO2 96%]
-        OBS_TEMP[Observation<br/>Temp 36.8]
-        OBS_WT[Observation<br/>Wt 72 kg]
-        PROC[Procedure<br/>Pre-referral Treatment]
-        DR[DiagnosticReport<br/>Urinalysis]
-    end
-
-    subgraph "Referral & Workflow"
-        SR[ServiceRequest<br/>eReferral to RSTMH]
-        TASK[Task<br/>Requested]
-        PROV[Provenance<br/>Signature]
-    end
-
-    PAT --> ENC
-    PRAC --> PR_KHC
-    ORG_KHC --> PR_KHC
-    ORG_RSTMH --> PR_RSTMH
-
-    ENC --> COND_CC
-    ENC --> COND_DX
-    ENC --> OBS_BP
-    ENC --> OBS_HR
-    ENC --> OBS_RR
-    ENC --> OBS_O2
-    ENC --> OBS_TEMP
-    ENC --> OBS_WT
-    ENC --> PROC
-    ENC --> DR
-    ENC --> SR
-
-    COND_CC --> PAT
-    COND_DX --> PAT
-    OBS_BP --> PAT
-    OBS_HR --> PAT
-    OBS_RR --> PAT
-    OBS_O2 --> PAT
-    OBS_TEMP --> PAT
-    OBS_WT --> PAT
-    PROC --> PAT
-    DR --> PAT
-
-    SR --> PAT
-    SR --> PR_KHC
-    SR --> PR_RSTMH
-    SR --> COND_DX
-    SR --> ENC
-
-    TASK --> SR
-    TASK --> PAT
-    TASK --> PR_KHC
-    TASK --> PR_RSTMH
-
-    PROV --> SR
-    PROV --> PR_KHC
-    PROV --> ORG_KHC
-
-    style PAT fill:#e1f5fe
-    style PRAC fill:#e8f5e9
-    style ORG_KHC fill:#fff3e0
-    style ORG_RSTMH fill:#fff3e0
-    style PR_KHC fill:#e8f5e9
-    style PR_RSTMH fill:#e8f5e9
-    style ENC fill:#f3e5f5
-    style COND_DX fill:#fce4ec
-    style COND_CC fill:#fce4ec
-    style OBS_BP fill:#fff9c4
-    style OBS_HR fill:#fff9c4
-    style OBS_RR fill:#fff9c4
-    style OBS_O2 fill:#fff9c4
-    style OBS_TEMP fill:#fff9c4
-    style OBS_WT fill:#fff9c4
-    style PROC fill:#e0f2f1
-    style DR fill:#e0f2f1
-    style SR fill:#ffebee
-    style TASK fill:#ede7f6
-    style PROV fill:#efebe9
-```
 
 ### Reference Rules in This Bundle
 
@@ -911,16 +811,13 @@ The referral workflow is tracked through the **Task** resource's `status` field.
 
 ### Workflow States
 
-```mermaid
-stateDiagram-v2
-    [*] --> requested: Referral sent (initiation Bundle)
-    requested --> received: Receiving facility acknowledges
-    received --> accepted: Receiving facility accepts referral
-    accepted --> completed: Referral encounter complete
-    accepted --> rejected: Cannot accept referral
-    rejected --> [*]
-    completed --> [*]
-```
+The referral follows this state progression:
+
+1. **`requested`** — Referral sent (initiation Bundle)
+2. **`received`** — Receiving facility acknowledges
+3. **`accepted`** — Receiving facility accepts referral
+4. **`completed`** — Referral encounter complete
+5. **`rejected`** — Cannot accept referral
 
 ### Step 1: Referral Created (`requested`)
 
