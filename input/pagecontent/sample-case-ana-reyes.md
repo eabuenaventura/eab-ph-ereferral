@@ -66,7 +66,7 @@ This is a **referral initiation** — the moment Kalibo Health Center determines
 - The **ServiceRequest** (`performer`) points to the receiving facility's PractitionerRole
 - The **Task** (`focus`) points to the ServiceRequest and (`owner`) points to the receiving PractitionerRole
 - The **Provenance** (`target`) attests to the ServiceRequest
-- All intra-Bundle references use `urn:uuid:` temporary identifiers resolved by the server
+- All intra-Bundle references use `urn:uuid:` identifiers matching the bundle entry `fullUrl` values
 
 ---
 
@@ -197,7 +197,7 @@ curl -s -X POST "https://cdr.fhirlab.net/fhir" \
 
 ### Request Body (Transaction Bundle)
 
-The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identifiers so resources can reference each other before the server assigns permanent IDs.
+The complete bundle below is ready to POST. Each entry's `fullUrl` matches its `[ResourceType]/[InstanceId]` so intra-bundle references resolve correctly.
 
 ```json
 {
@@ -274,7 +274,7 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
         "organization": {"reference": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
-      "request": {"method": "POST", "url": "PractitionerRole", "ifNoneExist": "PractitionerRole?practitioner=urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e&organization=urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"}
+      "request": {"method": "POST", "url": "PractitionerRole", "ifNoneExist": "PractitionerRole?practitioner=Practitioner/ExampleERefPractitionerSubmission&organization=Organization/ExampleERefOrganizationKaliboHC"}
     },
     {
       "fullUrl": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126",
@@ -298,7 +298,7 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
         "organization": {"reference": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
-      "request": {"method": "POST", "url": "PractitionerRole", "ifNoneExist": "PractitionerRole?organization=urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"}
+      "request": {"method": "POST", "url": "PractitionerRole", "ifNoneExist": "PractitionerRole?organization=Organization/ExampleERefOrganizationDRSTMH"}
     },
     {
       "fullUrl": "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759",
@@ -326,7 +326,7 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "request": null
     },
     {
-      "fullUrl": "urn:uuid:05fe9d1b-3653-4a4e-8aa6-9dbb51acb4d4",
+      "fullUrl": "Task/ExampleERefTaskRequested",
       "resource": {
         "resourceType": "Task",
         "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-task"]},
@@ -344,7 +344,7 @@ The complete bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "request": {"method": "POST", "url": "Task"}
     },
     {
-      "fullUrl": "urn:uuid:6760bfb4-3596-4568-b8ff-b487736a70f5",
+      "fullUrl": "Provenance/ExampleERefProvenanceSubmission",
       "resource": {
         "resourceType": "Provenance",
         "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-provenance"]},
@@ -645,7 +645,7 @@ curl -s -X POST "https://cdr.fhirlab.net/fhir" \
   -d @ana-reyes-bundle.json | jq '.entry[].response.location'
 ```
 
-Save the Bundle JSON from the [Transaction Bundle section](#request-body-full-transaction-bundle) to a file named `ana-reyes-bundle.json`, then run the command above.
+Save the Bundle JSON from the [Transaction Bundle section](#request-body-transaction-bundle) to a file named `ana-reyes-bundle.json`, then run the command above.
 
 ### 3. Read Back Key Resources
 
@@ -716,7 +716,7 @@ curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 - **Master data** (Patient, Practitioner, Organization) uses conditional **PUT** with identifier search — resubmitting the same identifiers updates existing records instead of creating duplicates
 - **PractitionerRole** uses **POST** with `ifNoneExist` to avoid duplicates for the same practitioner+org pairing
 - **Clinical data** (ServiceRequest, Encounter, Condition, Observation, Procedure, DiagnosticReport, Task, Provenance) uses **POST** — each referral generates new clinical records
-- Intra-Bundle references use **`urn:uuid:`** temporary identifiers resolved by the server
+- Intra-Bundle references use **`urn:uuid:`** identifiers matching entry `fullUrl` values
 
 ### Codes and Terminology
 

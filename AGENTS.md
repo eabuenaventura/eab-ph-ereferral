@@ -23,6 +23,7 @@
 - **Compile FSH to JSON**: `sushi .`
   - Converts FSH files to FHIR JSON resources in `fsh-generated/`
   - Fast - use for quick validation of FSH syntax
+  - **IMPORTANT: SUSHI alone is not sufficient for validation.** The IG Publisher catches errors that SUSHI misses (e.g., `BUNDLE_ENTRY_URL_ABSOLUTE`, broken HTML links, full-url vs reference mismatches). Always run a full publisher build after any change to examples, page content, or FSH profiles.
   - Not recommended for debugging examples with terminology (Please use other below)
 
 
@@ -98,7 +99,7 @@ This ensures tables receive the `.ph-table` CSS (light headers, borders, zebra s
 - **Examples**: Instance examples in `input/fsh/examples/`
 - **ID pattern**: Use camelCase (e.g., `eRefPatient`, `eRefServiceRequest`)
 - **Branch naming**: Use hyphens, never slashes (e.g., `feat-name` not `feat/name`)
-- **Profile prefix**: Use `ERef` prefix for eReferral-specific profiles (e.g., `ERefPatient`, `ERefServiceRequest`)
+- **Bundle entry `fullUrl`**: Always use `urn:uuid:xxx` for transaction bundle entry `fullUrl` values. The IG Publisher enforces `BUNDLE_ENTRY_URL_ABSOLUTE` — relative URLs like `Patient/Example` will fail validation. To make intra-bundle references resolve correctly, always set FSH references directly via `.reference = "urn:uuid:xxx"` instead of using `Reference(InstanceName)` so that both the `fullUrl` and the reference use the same `urn:uuid:` identifier.
 
 > **Patterns:** [Standard IG Layout](https://fhirpatterns.net/ig-authoring-patterns/patterns/standard-ig-layout/) governs the `input/` directory structure used here. [FSH Authoring — Aliases and RuleSets](https://fhirpatterns.net/ig-authoring-patterns/patterns/aliases-and-rulesets/) and [Extensions and Slicing](https://fhirpatterns.net/ig-authoring-patterns/patterns/extensions-and-slicing/) cover FSH best practices. For profiling decisions, apply [Profile Minimalism with Justification](https://fhirpatterns.net/fhir-authoring-patterns/patterns/pl-12/) and [Example-Driven Profiling](https://fhirpatterns.net/fhir-authoring-patterns/patterns/pl-14/) — constrain only what is clinically necessary, and drive profile shape from concrete examples. See also [FSH-First, Repo-First Authoring](https://fhirpatterns.net/fhir-authoring-patterns/patterns/pl-06/) and [Package-First IG Layout](https://fhirpatterns.net/fhir-authoring-patterns/patterns/pl-07/) for the broader authoring philosophy this repo follows.
 

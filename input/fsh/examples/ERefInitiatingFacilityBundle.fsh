@@ -137,7 +137,7 @@ Description: "Ambulatory encounter at Kalibo Health Center where Ana Reyes was a
 
 * status = #finished
 * class = $v3-ActCode#AMB "ambulatory"
-* subject = Reference(ExampleERefPatient)
+* subject.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
 
 
 // --- PRACTITIONER — REF-1 Name of Referring Practitioner (Required=Yes) ------
@@ -193,8 +193,8 @@ Usage: #example
 Title: "Example PractitionerRole — Dr. Villanueva at Kalibo Health Center"
 Description: "Links Dr. Maria Villanueva to Kalibo Health Center as a primary care physician."
 
-* practitioner = Reference(ExampleERefPractitionerSubmission)
-* organization = Reference(ExampleERefOrganizationKaliboHC)
+* practitioner.reference = "urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e"
+* organization.reference = "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"
 * code = $sct#158965000 "Medical practitioner"
 
 
@@ -206,7 +206,7 @@ Usage: #example
 Title: "Example PractitionerRole — Receiving Facility at DRSTMH"
 Description: "PractitionerRole representing the receiving facility at DRSTMH for Task.owner linkage. Practitioner not yet assigned at initial submission."
 
-* organization = Reference(ExampleERefOrganizationDRSTMH)
+* organization.reference = "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"
 * code = $sct#158965000 "Medical practitioner"
 
 
@@ -248,8 +248,8 @@ Description: "Chief complaint recorded at Kalibo Health Center: severe headache,
 * category = $condition-category#problem-list-item "Problem List Item"
 * code = $sct#25064002 "Headache"
   * text = "Severe headache, dizziness, blurring of vision and epigastric pain for 2 days"
-* subject = Reference(ExampleERefPatient)
-* encounter = Reference(ExampleERefSubmissionEncounter)
+* subject.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
+* encounter.reference = "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"
 * note.text = "Chief complaint: severe headache, dizziness, blurring of vision and epigastric pain for 2 days. G2P1, 32 weeks AOG."
 
 
@@ -266,10 +266,10 @@ Description: "Working impression of severe pre-eclampsia in a 38-year-old G2P1 a
 * category = $condition-category#encounter-diagnosis "Encounter Diagnosis"
 * code = $sct#398254007 "Pre-eclampsia"
   * text = "Severe pre-eclampsia, 32 weeks AOG, G2P1"
-* subject = Reference(ExampleERefPatient)
+* subject.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
 
 // Linked By: Condition.encounter Reference(PHeRefEncounter) — REF-31, REF-32
-* encounter = Reference(ExampleERefSubmissionEncounter)
+* encounter.reference = "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"
 
 // REF-32: Clinical History → Condition.note
 * note.text = "G2P1, 32 weeks AOG. EDD: Aug 20 2026. LMP: Nov 13 2025."
@@ -289,11 +289,11 @@ Description: "Blood pressure taken at Kalibo Health Center: 180/110 mmHg."
 * category = $observation-category#vital-signs "Vital Signs"
 * code.coding[0] = $loinc#85354-9 "Blood pressure panel with all children optional"
 * code.coding[+] = $sct#75367002 "Blood pressure"
-* subject = Reference(ExampleERefPatient)
+* subject.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
 * effectiveDateTime = "2026-06-18T08:15:00+08:00"
 
 // Linked By: Observation.encounter Reference(PHeRefEncounter)
-* encounter = Reference(ExampleERefSubmissionEncounter)
+* encounter.reference = "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"
 
 // BP profile requires LOINC component codes for SystolicBP (8480-6) and DiastolicBP (8462-4) slices.
 // SNOMED component codes are co-coded per TDG REF-33.
@@ -318,9 +318,9 @@ Description: "Heart rate taken at Kalibo Health Center: 112 bpm."
 * category = $observation-category#vital-signs "Vital Signs"
 * code.coding[0] = $loinc#8867-4 "Heart rate"
 * code.coding[+] = $sct#78564009 "Pulse rate"
-* subject = Reference(ExampleERefPatient)
+* subject.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
 * effectiveDateTime = "2026-06-18T08:15:00+08:00"
-* encounter = Reference(ExampleERefSubmissionEncounter)
+* encounter.reference = "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"
 * valueQuantity = 112 '/min' "beats/minute"
 
 
@@ -337,9 +337,9 @@ Description: "Respiratory rate taken at Kalibo Health Center: 24/min."
 * category = $observation-category#vital-signs "Vital Signs"
 * code.coding[0] = $loinc#9279-1 "Respiratory rate"
 * code.coding[+] = $sct#86290005 "Respiratory rate"
-* subject = Reference(ExampleERefPatient)
+* subject.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
 * effectiveDateTime = "2026-06-18T08:15:00+08:00"
-* encounter = Reference(ExampleERefSubmissionEncounter)
+* encounter.reference = "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"
 * valueQuantity = 24 '/min' "breaths/minute"
 
 
@@ -356,9 +356,9 @@ Description: "Oxygen saturation taken at Kalibo Health Center: 96%."
 * category = $observation-category#vital-signs "Vital Signs"
 * code.coding[0] = $loinc#2708-6 "Oxygen saturation in Arterial blood"
 * code.coding[+] = $sct#103228002 "Hemoglobin saturation with oxygen"
-* subject = Reference(ExampleERefPatient)
+* subject.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
 * effectiveDateTime = "2026-06-18T08:15:00+08:00"
-* encounter = Reference(ExampleERefSubmissionEncounter)
+* encounter.reference = "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"
 * valueQuantity = 96 '%' "%"
 
 
@@ -375,9 +375,9 @@ Description: "Body temperature taken at Kalibo Health Center: 36.8 C."
 * category = $observation-category#vital-signs "Vital Signs"
 * code.coding[0] = $loinc#8310-5 "Body temperature"
 * code.coding[+] = $sct#386725007 "Body temperature"
-* subject = Reference(ExampleERefPatient)
+* subject.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
 * effectiveDateTime = "2026-06-18T08:15:00+08:00"
-* encounter = Reference(ExampleERefSubmissionEncounter)
+* encounter.reference = "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"
 * valueQuantity = 36.8 'Cel' "Celsius"
 
 
@@ -394,9 +394,9 @@ Description: "Body weight taken at Kalibo Health Center: 72 kg."
 * category = $observation-category#vital-signs "Vital Signs"
 * code.coding[0] = $loinc#29463-7 "Body weight"
 * code.coding[+] = $sct#27113001 "Body weight"
-* subject = Reference(ExampleERefPatient)
+* subject.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
 * effectiveDateTime = "2026-06-18T08:15:00+08:00"
-* encounter = Reference(ExampleERefSubmissionEncounter)
+* encounter.reference = "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"
 * valueQuantity = 72 'kg' "kg"
 
 
@@ -410,10 +410,10 @@ Description: "Medications administered at Kalibo Health Center prior to referral
 
 * status = #completed
 * code = $sct#416608005 "Drug therapy"
-* subject = Reference(ExampleERefPatient)
+* subject.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
 
 // Linked By: Procedure.encounter Reference(PHeRefEncounter)
-* encounter = Reference(ExampleERefSubmissionEncounter)
+* encounter.reference = "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"
 
 // REF-39: Treatment Given → Procedure.note
 * note.text = "Pre-referral treatment given: Methyldopa 250mg BID, Folic Acid 5mg OD, FeSO4 300mg OD, CaCO3 500mg TID."
@@ -428,8 +428,8 @@ Description: "Urinalysis results showing proteinuria 3+, supporting the pre-ecla
 
 * status = #final
 * code = $loinc#24356-8 "Urinalysis complete panel - Urine"
-* subject = Reference(ExampleERefPatient)
-* encounter = Reference(ExampleERefSubmissionEncounter)
+* subject.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
+* encounter.reference = "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"
 * conclusion = "Proteinuria 3+. Findings consistent with severe pre-eclampsia."
 * presentedForm.title = "Urinalysis Results — Kalibo Health Center"
 
@@ -455,25 +455,25 @@ Description: "Referral request from Kalibo Health Center to Dr. Rafael S. Tumbok
 * authoredOn = "2026-06-18T08:30:00+08:00"
 
 // REF-1, REF-2, REF-5–REF-8: Requester via PractitionerRole
-* requester = Reference(ExampleERefPractitionerRoleSubmission)
+* requester.reference = "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"
 
 // REF-10, REF-11: Performer (Receiving Facility via PractitionerRole)
-* performer = Reference(ExampleERefPractitionerRoleReceiving)
+* performer.reference = "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de"
 
 // REF-16: Reason for Referral — reasonCode (Required=Yes)
 * reasonCode = $sct#71388002 "Procedure"
   * text = "Severe pre-eclampsia requiring IV antihypertensive, seizure prophylaxis, and maternal-fetal monitoring"
 
 // REF-41: Working Impression supporting the referral
-* reasonReference = Reference(ExampleERefCondition)
+* reasonReference.reference = "urn:uuid:7166d722-982f-4d35-841d-c63d4d5ec772"
 
 // Clinical information (REF-31, REF-33-41) linked via Encounter
 
 // REF-21: Subject (patient)
-* subject = Reference(ExampleERefPatient)
+* subject.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
 
 // Encounter: the clinical event this referral is associated with
-* encounter = Reference(ExampleERefSubmissionEncounter)
+* encounter.reference = "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"
 
 // Free-text referral notes
 * note.text = "Ana Reyes, 38-year-old G2P1, 32 weeks AOG. BP 180/110 mmHg with severe headache, dizziness, and blurring of vision. Proteinuria 3+. Referred for urgent management of severe pre-eclampsia."
@@ -502,15 +502,15 @@ Description: "Task representing the referral for Ana Reyes in 'requested' status
 * code.text = "eReferral for severe pre-eclampsia management"
 
 // REF-15: Task tracks ServiceRequest
-* focus = Reference(ExampleERefServiceRequest)
+* focus.reference = "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759"
 
-* for = Reference(ExampleERefPatient)
+* for.reference = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
 
 // Referring side
-* requester = Reference(ExampleERefPractitionerRoleSubmission)
+* requester.reference = "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"
 
 // REF-9, REF-10, REF-11: Receiving facility / Care Navigator (via PractitionerRole)
-* owner = Reference(ExampleERefPractitionerRoleReceiving)
+* owner.reference = "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de"
 
 * authoredOn = "2026-06-18T08:30:00+08:00"
 * lastModified = "2026-06-18T08:30:00+08:00"
@@ -532,20 +532,20 @@ Description: "Provenance record with professional signature for Ana Reyes' refer
 * recorded = "2026-06-18T08:30:00+08:00"
 
 // Target: the referral it attests to
-* target = Reference(ExampleERefServiceRequest)
+* target.reference = "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759"
 
 * activity = $v3-DataOperation#CREATE "create"
 
 // Agent who created the referral
 * agent[0].type = $provenance-participant-type#author "Author"
-* agent[=].who = Reference(ExampleERefPractitionerRoleSubmission)
-* agent[=].onBehalfOf = Reference(ExampleERefOrganizationKaliboHC)
+* agent[=].who.reference = "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"
+* agent[=].onBehalfOf.reference = "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"
 
 // REF-4: Professional Signature
 // Sub-elements required by ERefProvenance: type (1..*), when (1..1), who (1..1), data (1..1)
 * signature[0].type = $signature-type#1.2.840.10065.1.12.1.5 "Verification Signature"
 * signature[=].when = "2026-06-18T08:30:00+08:00"
-* signature[=].who = Reference(ExampleERefPractitionerRoleSubmission)
+* signature[=].who.reference = "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"
 * signature[=].data = "dGVzdHNpZ25hdHVyZWJhc2U2NA=="
 * signature[=].sigFormat = #application/signature+xml
 
