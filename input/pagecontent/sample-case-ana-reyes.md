@@ -16,7 +16,7 @@ This tutorial walks you through the complete eReferral initiation workflow using
 1. [The Case Scenario](#the-case-scenario)
 2. [Reference Rules in This Bundle](#reference-rules-in-this-bundle)
 3. [Looking Up Codes at tx.fhirlab.net](#looking-up-codes-at-txfhirlabnet)
-4. [The Transaction Bundle — POST /fhir](#the-transaction-bundle--post-fhir)
+4. [The Transaction Bundle](#the-transaction-bundle)
 5. [Reading Back Resources](#reading-back-resources)
 6. [Searching for Referrals](#searching-for-referrals)
 7. [Tracing the Workflow — Task State Progression](#tracing-the-workflow--task-state-progression)
@@ -172,31 +172,23 @@ curl -s "https://tx.fhirlab.net/fhir/CodeSystem/\$lookup?system=http://loinc.org
 
 ---
 
-## The Transaction Bundle — POST /fhir
+## The Transaction Bundle
 
-The referral initiation is sent as a **single FHIR transaction Bundle**. This ensures atomicity — either the entire referral is created, or nothing is.
+The referral initiation is sent as a **single FHIR transaction Bundle** — all entries succeed or fail atomically.
 
-### Entry Method Strategy: PUT vs POST
+### Conditional Update (PUT)
 
-The bundle uses two different HTTP methods to avoid duplicate master data while creating new clinical records:
+Master data entries use FHIR's [conditional update](https://www.hl7.org/fhir/http.html#cond-update) pattern: `PUT [ResourceType]?identifier=[system]|[value]`. When the server receives the bundle:
 
-| Method | Used For | Behavior |
-|--------|----------|----------|
-| **PUT** | Master data: Patient, Practitioner, Organization, PractitionerRole | Conditional upsert via identifier. PractitionerRole inherits the Practitioner's PRC ID (KHC) or the Organization's NHFR code (DRSTMH). Repeated submissions update existing records instead of creating duplicates. |
-| **POST** | Clinical data: ServiceRequest, Encounter, Condition, Observation, Procedure, DiagnosticReport, Task, Provenance | Always create a new resource. Each referral is a new clinical event. |
+1. It searches for an existing resource matching the identifier
+2. If found — the resource is **updated** in-place
+3. If not found — a **new** resource is created
 
-### Request
+This makes repeated submissions **idempotent** — posting the same referral twice won't create duplicate Patient, Practitioner, Organization, or PractitionerRole records.
 
-```bash
-curl -s -X POST "https://cdr.fhirlab.net/fhir" \
-  -H "Content-Type: application/fhir+json" \
-  -H "Accept: application/fhir+json" \
-  -d @- <<'BUNDLE'
-```
+### The 6 Conditional PUT Entries
 
-### Request Body (Transaction Bundle)
-
-The complete bundle below is ready to POST. Each entry's `fullUrl` matches its `[ResourceType]/[InstanceId]` so intra-bundle references resolve correctly.
+The full bundle contains 20 entries. The 6 master data entries below use conditional PUT. The remaining 14 clinical entries (ServiceRequest, Encounter, Conditions, Observations, Procedure, DiagnosticReport, Task, Provenance) use plain POST.
 
 ```json
 {
@@ -298,119 +290,22 @@ The complete bundle below is ready to POST. Each entry's `fullUrl` matches its `
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
       "request": {"method": "PUT", "url": "PractitionerRole?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"}
-    },
-    {
-      "fullUrl": "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759",
-      "resource": {
-        "resourceType": "ServiceRequest",
-        "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-service-request"]},
-        "status": "active",
-        "intent": "order",
-        "category": [{"coding": [{"system": "http://snomed.info/sct", "code": "73770003", "display": "Hospital-based outpatient emergency care center"}], "text": "Emergency"}],
-        "authoredOn": "2026-06-18T08:30:00+08:00",
-        "requester": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"},
-        "performer": [{"reference": "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de"}],
-        "reasonCode": [{"coding": [{"system": "http://snomed.info/sct", "code": "71388002", "display": "Procedure"}], "text": "Severe pre-eclampsia requiring IV antihypertensive, seizure prophylaxis, and maternal-fetal monitoring"}],
-        "reasonReference": [{"reference": "urn:uuid:7166d722-982f-4d35-841d-c63d4d5ec772"}],
-        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
-        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
-        "note": [{"text": "Ana Reyes, 38-year-old G2P1, 32 weeks AOG. BP 180/110 mmHg with severe headache, dizziness, and blurring of vision. Proteinuria 3+. Referred for urgent management of severe pre-eclampsia."}],
-        "occurrenceDateTime": "2026-06-18T08:30:00+08:00",
-        "requisition": {"system": "urn:oid:1.2.840.113619.21.1.2", "value": "REF-2026-001234"}
-      },
-      "request": {"method": "POST", "url": "ServiceRequest"}
-    },
-    {
-      "...": "Entries 8–18: Encounter, 2 Conditions, 6 vital-sign Observations, Procedure, DiagnosticReport — all use POST. See FSH source for full details.",
-      "request": null
-    },
-    {
-      "fullUrl": "Task/ExampleERefTaskRequested",
-      "resource": {
-        "resourceType": "Task",
-        "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-task"]},
-        "status": "requested",
-        "intent": "order",
-        "code": {"coding": [{"system": "http://snomed.info/sct", "code": "3457005", "display": "Patient referral"}], "text": "eReferral for severe pre-eclampsia management"},
-        "focus": {"reference": "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759"},
-        "for": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
-        "requester": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"},
-        "owner": {"reference": "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de"},
-        "authoredOn": "2026-06-18T08:30:00+08:00",
-        "lastModified": "2026-06-18T08:30:00+08:00",
-        "note": [{"text": "New referral for Ana Reyes with severe pre-eclampsia. Awaiting DRSTMH response."}]
-      },
-      "request": {"method": "POST", "url": "Task"}
-    },
-    {
-      "fullUrl": "Provenance/ExampleERefProvenanceSubmission",
-      "resource": {
-        "resourceType": "Provenance",
-        "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-provenance"]},
-        "recorded": "2026-06-18T08:30:00+08:00",
-        "target": [{"reference": "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759"}],
-        "activity": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/v3-DataOperation", "code": "CREATE", "display": "create"}]},
-        "agent": [{"type": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/provenance-participant-type", "code": "author"}]}, "who": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"}, "onBehalfOf": {"reference": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"}}],
-        "signature": [{
-          "type": [{"system": "urn:iso-astm:E1762-95:2013", "code": "1.2.840.10065.1.12.1.5", "display": "Verification Signature"}],
-          "when": "2026-06-18T08:30:00+08:00",
-          "who": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"},
-          "data": "dGVzdHNpZ25hdHVyZWJhc2U2NA=="
-        }]
-      },
-      "request": {"method": "POST", "url": "Provenance"}
     }
   ]
 }
-BUNDLE
 ```
 
-> **Entry method summary:** Entries 1–6 use conditional **PUT** — resubmitting the same identifiers updates existing records. PractitionerRole inherits identifiers from its linked Practitioner (PRC) or Organization (NHFR). Entries 7–20 use plain **POST** for new clinical data. See the [FSH source](https://github.com/ph-ereferral-organization/ph-ereferral/blob/main/input/fsh/examples/ERefInitiatingFacilityBundle.fsh) for all 20 entries.
+> The remaining 14 clinical entries (ServiceRequest, Encounter, Conditions, Observations, Procedure, DiagnosticReport, Task, Provenance) all use `POST` — each referral generates new clinical records. Full bundle available below.
+
+### Full Bundle Downloads
+
+- **JSON**: [`Bundle-ExampleERefSubmissionBundle.json`](Bundle-ExampleERefSubmissionBundle.json) — Download and POST directly to any FHIR server
+- **Rendered**: [`Bundle-ExampleERefSubmissionBundle.html`](Bundle-ExampleERefSubmissionBundle.html) — IG-rendered view with narrative
+- **FSH Source**: [`input/fsh/examples/ERefInitiatingFacilityBundle.fsh`](https://github.com/ph-ereferral-organization/ph-ereferral/blob/main/input/fsh/examples/ERefInitiatingFacilityBundle.fsh)
 
 ### Bundle Entry Ordering Note
 
 Entries are ordered so that referenced resources appear first. Master data (PUT entries) come before clinical data (POST entries). The ServiceRequest precedes the Task and Provenance that reference it.
-
-### Key Entry Field Reference
-
-> **Note:** Patient, Practitioner, and Organization use conditional **PUT** with identifier search. Clinical entries use **POST**. See the bundle above for the full pattern.
-
-#### Patient (PUT — conditional upsert by PhilSys ID)
-
-| Field | Required? | Purpose |
-|-------|-----------|---------|
-| `meta.profile` | Yes | Conformance to ERefPatient |
-| `name` | Yes | Official name (`family`, `given`) |
-| `gender` | Yes | Administrative gender |
-| `birthDate` | Yes | Date of birth (YYYY-MM-DD) |
-| `identifier` | Yes | PhilHealth ID + PhilSys ID |
-| `address` | Yes | Home address with PSGC extensions |
-| `contact` | Yes | Next of kin (ERefPatient required) |
-
-#### ServiceRequest (POST — new referral)
-
-| Field | Required? | Purpose |
-|-------|-----------|---------|
-| `status` | Yes | `"active"` |
-| `intent` | Yes | `"order"` |
-| `category` | Yes | SNOMED referral category |
-| `authoredOn` | Yes | Date and time of referral |
-| `requester` | Yes | Referring PractitionerRole |
-| `performer` | Yes | Receiving PractitionerRole |
-| `reasonCode` | Yes | Reason for referral |
-| `subject` | Yes | Patient being referred |
-
-#### Task (POST — workflow tracker)
-
-| Field | Required? | Purpose |
-|-------|-----------|---------|
-| `status` | Yes | `"requested"` (initial state) |
-| `intent` | Yes | `"order"` |
-| `code` | Yes | SNOMED `3457005` (Patient referral) |
-| `focus` | Yes | ServiceRequest being tracked |
-| `for` | Yes | Patient the task is for |
-| `requester` | Yes | Referring PractitionerRole |
-| `owner` | Yes | Receiving PractitionerRole |
 
 ---
 
@@ -644,7 +539,7 @@ curl -s -X POST "https://cdr.fhirlab.net/fhir" \
   -d @ana-reyes-bundle.json | jq '.entry[].response.location'
 ```
 
-Save the Bundle JSON from the [Transaction Bundle section](#request-body-transaction-bundle) to a file named `ana-reyes-bundle.json`, then run the command above.
+Save the full bundle JSON from [Bundle-ExampleERefSubmissionBundle.json](Bundle-ExampleERefSubmissionBundle.json) as `ana-reyes-bundle.json`, then run the command above.
 
 ### 3. Read Back Key Resources
 
