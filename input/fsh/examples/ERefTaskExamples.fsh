@@ -10,7 +10,7 @@
 //   - focus → ExampleERefServiceRequest
 //   - for → ExampleERefPatient
 //   - requester → ExampleERefPractitionerRoleSubmission (KHC)
-//   - owner → varies per state (RSTMH or onward)
+//   - owner → varies per state (DRSTMH or onward)
 //
 // Elements minimized to TDG mappings only.
 // =============================================================================
@@ -20,7 +20,7 @@ Instance: ExampleERefTaskReceived
 InstanceOf: ERefTask
 Usage: #example
 Title: "Example eReferral Task — Received"
-Description: "Task in 'received' status: RSTMH has acknowledged the referral."
+Description: "Task in 'received' status: DRSTMH has acknowledged the referral."
 
 * status = #received
 * intent = #order
@@ -38,7 +38,7 @@ Instance: ExampleERefTaskRejected
 InstanceOf: ERefTask
 Usage: #example
 Title: "Example eReferral Task — Rejected"
-Description: "Task in 'rejected' status: RSTMH cannot take the case and no onward facility is identified."
+Description: "Task in 'rejected' status: DRSTMH cannot take the case and no onward facility is identified."
 
 * status = #rejected
 * intent = #order
@@ -57,7 +57,7 @@ Instance: ExampleERefTaskReferredOnward
 InstanceOf: ERefTask
 Usage: #example
 Title: "Example eReferral Task — Referred Onward"
-Description: "Task in 'rejected' status with 'referred-onward' business status: RSTMH redirects the case."
+Description: "Task in 'rejected' status with 'referred-onward' business status: DRSTMH redirects the case."
 
 * status = #rejected
 * intent = #order

@@ -70,10 +70,10 @@
  * 
  * Routing Node Details:
  *   - Origin (Referring): Kalibo Health Center 
- *                         (NHFR: 042-CHC-0087 | Tel: (043) 756-2233)
+ *                         (NHFR: 3056 | Tel: (043) 756-2233)
  *   - Provider:           Dr. Maria Villanueva, Primary Care Physician
  *   - Destination (To):   Dr. Rafael S. Tumbokon Memorial Hospital 
- *                         (NHFR: 042-DH-0012)
+ *                         (NHFR: 513)
  */
 
 // --- PATIENT — REF-21 (name), REF-22 (gender), REF-23 (birthDate) -----------
@@ -152,6 +152,11 @@ Description: "Dr. Maria Villanueva, primary care physician at Kalibo Health Cent
 * name.given[0] = "Maria"
 * name.prefix = "Dr."
 
+// PRC License identifier — used for conditional PUT in submission Bundle
+// so that repeated submissions update the same Practitioner instead of creating duplicates.
+* identifier.system = "https://prc.gov.ph/"
+* identifier.value = "5466863"
+
 
 // --- ORGANIZATION (Referring) — REF-5 Name (Yes), REF-6 NHFR (Yes) -----------
 Instance: ExampleERefOrganizationKaliboHC
@@ -161,10 +166,10 @@ Title: "Example Referring Facility — Kalibo Health Center"
 Description: "Kalibo Health Center, the initiating/referring facility for Ana Reyes."
 
 * name = "Kalibo Health Center"
-* identifier[0].system = "https://nhfr.doh.gov.ph/facility"
-* identifier[0].value = "042-CHC-0087"
-* identifier[+].system = "https://fhir.doh.gov.ph/pheref/Identifier/hcpn"
-* identifier[=].value = "HCPN-WV-001"
+* identifier[0].system = "https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code"
+* identifier[0].value = "3056"
+* identifier[+].system = "https://fhir.doh.gov.ph/phcore/Identifier/hcpn-code"
+* identifier[=].value = "Aklan HCPN"
 
 // REF-8: Initiating Facility Contact Number
 * telecom.system = #phone
@@ -198,25 +203,25 @@ Description: "Links Dr. Maria Villanueva to Kalibo Health Center as a primary ca
 Instance: ExampleERefPractitionerRoleReceiving
 InstanceOf: ERefPractitionerRole
 Usage: #example
-Title: "Example PractitionerRole — Receiving Facility at RSTMH"
-Description: "PractitionerRole representing the receiving facility at RSTMH for Task.owner linkage. Practitioner not yet assigned at initial submission."
+Title: "Example PractitionerRole — Receiving Facility at DRSTMH"
+Description: "PractitionerRole representing the receiving facility at DRSTMH for Task.owner linkage. Practitioner not yet assigned at initial submission."
 
-* organization = Reference(ExampleERefOrganizationRSTMH)
+* organization = Reference(ExampleERefOrganizationDRSTMH)
 * code = $sct#158965000 "Medical practitioner"
 
 
 // --- ORGANIZATION (Receiving) — REF-10 Name (Yes), REF-11 NHFR (Yes) ---------
-Instance: ExampleERefOrganizationRSTMH
+Instance: ExampleERefOrganizationDRSTMH
 InstanceOf: PHCoreOrganization
 Usage: #example
 Title: "Example Receiving Facility — Dr. Rafael S. Tumbokon Memorial Hospital"
-Description: "Dr. Rafael S. Tumbokon Memorial Hospital (RSTMH), the receiving facility for Ana Reyes' referral."
+Description: "Dr. Rafael S. Tumbokon Memorial Hospital (DRSTMH), the receiving facility for Ana Reyes' referral."
 
 * name = "Dr. Rafael S. Tumbokon Memorial Hospital"
-* identifier[0].system = "https://nhfr.doh.gov.ph/facility"
-* identifier[0].value = "042-DH-0012"
-* identifier[+].system = "https://fhir.doh.gov.ph/pheref/Identifier/hcpn"
-* identifier[=].value = "HCPN-WV-001"
+* identifier[0].system = "https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code"
+* identifier[0].value = "513"
+* identifier[+].system = "https://fhir.doh.gov.ph/phcore/Identifier/hcpn-code"
+* identifier[=].value = "Aklan HCPN"
 
 * telecom.system = #phone
 * telecom.value = "(043) 756-3124"
@@ -433,7 +438,7 @@ Description: "Urinalysis results showing proteinuria 3+, supporting the pre-ecla
 Instance: ExampleERefServiceRequest
 InstanceOf: ERefServiceRequest
 Usage: #example
-Title: "Example eReferral — Ana Reyes to RSTMH"
+Title: "Example eReferral — Ana Reyes to DRSTMH"
 Description: "Referral request from Kalibo Health Center to Dr. Rafael S. Tumbokon Memorial Hospital for severe pre-eclampsia management."
 
 // Status and intent
@@ -509,7 +514,7 @@ Description: "Task representing the referral for Ana Reyes in 'requested' status
 
 * authoredOn = "2026-06-18T08:30:00+08:00"
 * lastModified = "2026-06-18T08:30:00+08:00"
-* note.text = "New referral for Ana Reyes with severe pre-eclampsia. Awaiting RSTMH response."
+* note.text = "New referral for Ana Reyes with severe pre-eclampsia. Awaiting DRSTMH response."
 
 // Task.status = #requested captures the initial state.
 // businessStatus is populated by the receiving facility on response."
@@ -546,134 +551,167 @@ Description: "Provenance record with professional signature for Ana Reyes' refer
 
 
 // =============================================================================
-// SUBMISSION BUNDLE: Initiating Facility (KHC → RSTMH)
+// SUBMISSION BUNDLE: Initiating Facility (KHC → DRSTMH)
+//
+// Transaction entry pattern:
+//   PUT  + conditional identifier  → master/reference data (upsert: create or update)
+//   POST + ifNoneExist            → PractitionerRole (dedup check before create)
+//   POST                          → clinical/business data (always create new)
+//
+// Why PUT for master data?
+//   Repeated submission of the same Patient, Practitioner, or Organization should
+//   update the existing record, not create duplicates. Conditional PUT with an
+//   identifier search parameter achieves idempotent upsert semantics.
+//
+// Why POST + ifNoneExist for PractitionerRole?
+//   PractitionerRole has no single identifier suitable for conditional PUT.
+//   ifNoneExist searches by practitioner+org before creating, avoiding duplicates
+//   when the same practitioner-org pairing is resubmitted.
+//
+// Why POST for clinical/business data?
+//   Each referral represents a new clinical event. Observations, Conditions,
+//   the ServiceRequest, Task, and Provenance are always new resources that
+//   represent this specific referral instance.
+//
+// Intra-bundle references use urn:uuid: fullUrls. The FHIR transaction processor
+// resolves them sequentially, so entries referenced by later entries must appear
+// earlier in the bundle.
 // =============================================================================
 
-// --- SUBMISSION BUNDLE: Story 1 (KHC → RSTMH) ----------------------------------
+// --- SUBMISSION BUNDLE: Story 1 (KHC → DRSTMH) ----------------------------------
 Instance: ExampleERefSubmissionBundle
 InstanceOf: Bundle
 Usage: #example
-Title: "Example Submission Bundle — Initial Referral (KHC → RSTMH)"
-Description: "Transaction bundle for the initial referral submission from Kalibo Health Center to Dr. Rafael S. Tumbokon Memorial Hospital."
+Title: "Example Submission Bundle — Initial Referral (KHC → DRSTMH)"
+Description: "Transaction bundle for the initial referral submission from Kalibo Health Center to Dr. Rafael S. Tumbokon Memorial Hospital. Master data uses conditional PUT; clinical data uses POST."
 * type = #transaction
 * timestamp = "2026-06-18T08:30:00+08:00"
 
-// Patient
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Patient/ExampleERefPatient"
+// ---- Master Data: Conditional PUT entries (upsert via identifier search) -----
+
+// Patient — conditional PUT by PhilSys ID
+// Server checks if Patient with this PhilSys ID exists; updates if found, creates if not.
+* entry[+].fullUrl = "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"
 * entry[=].resource = ExampleERefPatient
-* entry[=].request.method = #POST
-* entry[=].request.url = "Patient"
+* entry[=].request.method = #PUT
+* entry[=].request.url = "Patient?identifier=http://philsys.gov.ph/fhir/Identifier/philsys-id|7731-0812-4491-0326"
 
-// Practitioner — Referring
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Practitioner/ExampleERefPractitionerSubmission"
+// Practitioner — conditional PUT by PRC license number
+* entry[+].fullUrl = "urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e"
 * entry[=].resource = ExampleERefPractitionerSubmission
-* entry[=].request.method = #POST
-* entry[=].request.url = "Practitioner"
+* entry[=].request.method = #PUT
+* entry[=].request.url = "Practitioner?identifier=https://prc.gov.ph/|5466863"
 
-// Organization — Referring (KHC)
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Organization/ExampleERefOrganizationKaliboHC"
+// Organization (Referring: KHC) — conditional PUT by NHFR facility code
+* entry[+].fullUrl = "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"
 * entry[=].resource = ExampleERefOrganizationKaliboHC
-* entry[=].request.method = #POST
-* entry[=].request.url = "Organization"
+* entry[=].request.method = #PUT
+* entry[=].request.url = "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|3056"
 
-// PractitionerRole — Referring (KHC)
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/PractitionerRole/ExampleERefPractitionerRoleSubmission"
+// Organization (Receiving: DRSTMH) — conditional PUT by NHFR facility code
+* entry[+].fullUrl = "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"
+* entry[=].resource = ExampleERefOrganizationDRSTMH
+* entry[=].request.method = #PUT
+* entry[=].request.url = "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"
+
+// ---- PractitionerRole: POST with ifNoneExist (dedup check before create) -----
+
+// PractitionerRole (Referring: KHC) — avoids duplicates for same practitioner+org
+* entry[+].fullUrl = "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"
 * entry[=].resource = ExampleERefPractitionerRoleSubmission
 * entry[=].request.method = #POST
 * entry[=].request.url = "PractitionerRole"
+* entry[=].request.ifNoneExist = "PractitionerRole?practitioner=urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e&organization=urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"
 
-// Organization — Receiving (RSTMH)
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Organization/ExampleERefOrganizationRSTMH"
-* entry[=].resource = ExampleERefOrganizationRSTMH
-* entry[=].request.method = #POST
-* entry[=].request.url = "Organization"
-
-// PractitionerRole — Receiving (RSTMH)
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/PractitionerRole/ExampleERefPractitionerRoleReceiving"
+// PractitionerRole (Receiving: DRSTMH) — avoids duplicates for same org (no practitioner assigned yet)
+* entry[+].fullUrl = "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de"
 * entry[=].resource = ExampleERefPractitionerRoleReceiving
 * entry[=].request.method = #POST
 * entry[=].request.url = "PractitionerRole"
+* entry[=].request.ifNoneExist = "PractitionerRole?organization=urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"
+
+// ---- Clinical / Business Data: Always POST (new resources per referral) ------
 
 // ServiceRequest — MUST come before Encounter, Task, Provenance (they reference it)
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/ServiceRequest/ExampleERefServiceRequest"
+* entry[+].fullUrl = "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759"
 * entry[=].resource = ExampleERefServiceRequest
 * entry[=].request.method = #POST
 * entry[=].request.url = "ServiceRequest"
 
-// Encounter — references ServiceRequest via basedOn
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Encounter/ExampleERefSubmissionEncounter"
+// Encounter — the clinical visit context
+* entry[+].fullUrl = "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"
 * entry[=].resource = ExampleERefSubmissionEncounter
 * entry[=].request.method = #POST
 * entry[=].request.url = "Encounter"
 
-// Condition — Chief Complaint (REF-31)
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Condition/ExampleERefConditionChiefComplaint"
+// Condition — Chief Complaint (REF-31, problem-list-item)
+* entry[+].fullUrl = "urn:uuid:99a80644-e928-4fbd-b07f-8ac5fb5675b1"
 * entry[=].resource = ExampleERefConditionChiefComplaint
 * entry[=].request.method = #POST
 * entry[=].request.url = "Condition"
 
-// Condition — Working Impression (REF-41)
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Condition/ExampleERefCondition"
+// Condition — Working Impression (REF-41, encounter-diagnosis)
+* entry[+].fullUrl = "urn:uuid:7166d722-982f-4d35-841d-c63d4d5ec772"
 * entry[=].resource = ExampleERefCondition
 * entry[=].request.method = #POST
 * entry[=].request.url = "Condition"
 
-// Observation — Blood Pressure
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Observation/ExampleERefObservationBP"
+// Observation — Blood Pressure (REF-33)
+* entry[+].fullUrl = "urn:uuid:27ea0c24-b2e3-4f4e-ba6f-d40b4653232e"
 * entry[=].resource = ExampleERefObservationBP
 * entry[=].request.method = #POST
 * entry[=].request.url = "Observation"
 
-// Observation — Heart Rate
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Observation/ExampleERefObservationHR"
+// Observation — Heart Rate (REF-34)
+* entry[+].fullUrl = "urn:uuid:75b09e76-3c93-4a69-af02-71a6d9713558"
 * entry[=].resource = ExampleERefObservationHR
 * entry[=].request.method = #POST
 * entry[=].request.url = "Observation"
 
-// Observation — Respiratory Rate
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Observation/ExampleERefObservationRR"
+// Observation — Respiratory Rate (REF-35)
+* entry[+].fullUrl = "urn:uuid:0bd2221b-dac4-44ec-811b-a10683f301c9"
 * entry[=].resource = ExampleERefObservationRR
 * entry[=].request.method = #POST
 * entry[=].request.url = "Observation"
 
-// Observation — Oxygen Saturation
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Observation/ExampleERefObservationSpO2"
+// Observation — Oxygen Saturation (REF-36)
+* entry[+].fullUrl = "urn:uuid:080d6fb5-aed8-4dc0-b7dd-51d38f903819"
 * entry[=].resource = ExampleERefObservationSpO2
 * entry[=].request.method = #POST
 * entry[=].request.url = "Observation"
 
-// Observation — Temperature
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Observation/ExampleERefObservationTemp"
+// Observation — Temperature (REF-37)
+* entry[+].fullUrl = "urn:uuid:3f56fb3e-b0ea-4ab0-a7a5-2adac78d5c9b"
 * entry[=].resource = ExampleERefObservationTemp
 * entry[=].request.method = #POST
 * entry[=].request.url = "Observation"
 
-// Observation — Weight
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Observation/ExampleERefObservationWeight"
+// Observation — Weight (REF-38)
+* entry[+].fullUrl = "urn:uuid:d70026e6-2a52-4f4e-99d3-b73dbf52cfc3"
 * entry[=].resource = ExampleERefObservationWeight
 * entry[=].request.method = #POST
 * entry[=].request.url = "Observation"
 
-// Procedure
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Procedure/ExampleERefProcedureTreatment"
+// Procedure — Pre-referral Treatment (REF-39)
+* entry[+].fullUrl = "urn:uuid:873a6d29-a842-43e7-a267-c3df56193f7f"
 * entry[=].resource = ExampleERefProcedureTreatment
 * entry[=].request.method = #POST
 * entry[=].request.url = "Procedure"
 
-// DiagnosticReport
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/DiagnosticReport/ExampleERefDiagnosticReport"
+// DiagnosticReport — Urinalysis (REF-40)
+* entry[+].fullUrl = "urn:uuid:1e517f0b-6324-47f1-a626-8ddb5b617c59"
 * entry[=].resource = ExampleERefDiagnosticReport
 * entry[=].request.method = #POST
 * entry[=].request.url = "DiagnosticReport"
 
 // Task — references ServiceRequest via focus
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Task/ExampleERefTaskRequested"
+* entry[+].fullUrl = "urn:uuid:05fe9d1b-3653-4a4e-8aa6-9dbb51acb4d4"
 * entry[=].resource = ExampleERefTaskRequested
 * entry[=].request.method = #POST
 * entry[=].request.url = "Task"
 
 // Provenance — references ServiceRequest via target
-* entry[+].fullUrl = "https://fhir.doh.gov.ph/pheref/Provenance/ExampleERefProvenanceSubmission"
+* entry[+].fullUrl = "urn:uuid:6760bfb4-3596-4568-b8ff-b487736a70f5"
 * entry[=].resource = ExampleERefProvenanceSubmission
 * entry[=].request.method = #POST
 * entry[=].request.url = "Provenance"

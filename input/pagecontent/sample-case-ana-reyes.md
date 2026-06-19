@@ -48,14 +48,14 @@ This tutorial walks you through the complete eReferral initiation workflow using
 | **Working Impression** | G2P1(1001), Pregnancy Uterine, 32 weeks AOG — Severe Pre-eclampsia |
 | **Initial Treatment** | Methyldopa 250mg BID, Folic Acid 5mg OD, FeSO₄ 300mg OD, CaCO₃ 500mg TID |
 | **Referring Provider** | Dr. Maria Villanueva, Primary Care Physician |
-| **Referring Facility** | Kalibo Health Center (NHFR: 042-CHC-0087) |
-| **Receiving Facility** | Dr. Rafael S. Tumbokon Memorial Hospital — RSTMH (NHFR: 042-DH-0012) |
+| **Referring Facility** | Kalibo Health Center (NHFR: 3056) |
+| **Receiving Facility** | Dr. Rafael S. Tumbokon Memorial Hospital — DRSTMH (NHFR: 513) |
 | **Referral Category** | Emergency |
 | **Reason Category** | Procedure |
 
 ### What This Referral Models
 
-This is a **referral initiation** — the moment Kalibo Health Center determines Ana needs higher-level care and sends the referral to RSTMH. It is modeled as a **FHIR transaction Bundle** containing 20 entries that together form a complete, self-contained referral payload.
+This is a **referral initiation** — the moment Kalibo Health Center determines Ana needs higher-level care and sends the referral to DRSTMH. It is modeled as a **FHIR transaction Bundle** containing 20 entries that together form a complete, self-contained referral payload.
 
 ---
 
@@ -197,7 +197,7 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
   "type": "transaction",
   "entry": [
     {
-      "fullUrl": "urn:uuid:patient-ana-reyes",
+      "fullUrl": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542",
       "resource": {
         "resourceType": "Patient",
         "meta": {
@@ -233,21 +233,22 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
           "name": {"use": "official", "family": "Reyes", "given": ["Roberto"]}
         }]
       },
-      "request": {"method": "POST", "url": "Patient"}
+      "request": {"method": "PUT", "url": "Patient?identifier=http://philsys.gov.ph/fhir/Identifier/philsys-id|7731-0812-4491-0326"}
     },
     {
-      "fullUrl": "urn:uuid:practitioner-dr-villanueva",
+      "fullUrl": "urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e",
       "resource": {
         "resourceType": "Practitioner",
         "meta": {
           "profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner"]
         },
+        "identifier": [{"system": "https://prc.gov.ph/", "value": "5466863"}],
         "name": [{"use": "official", "family": "Villanueva", "given": ["Maria"], "prefix": ["Dr."]}]
       },
-      "request": {"method": "POST", "url": "Practitioner"}
+      "request": {"method": "PUT", "url": "Practitioner?identifier=https://prc.gov.ph/|5466863"}
     },
     {
-      "fullUrl": "urn:uuid:org-khc",
+      "fullUrl": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b",
       "resource": {
         "resourceType": "Organization",
         "meta": {
@@ -255,8 +256,8 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
         },
         "name": "Kalibo Health Center",
         "identifier": [
-          {"system": "https://nhfr.doh.gov.ph/facility", "value": "042-CHC-0087"},
-          {"system": "https://fhir.doh.gov.ph/pheref/Identifier/hcpn", "value": "HCPN-WV-001"}
+          {"system": "https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code", "value": "3056"},
+          {"system": "https://fhir.doh.gov.ph/phcore/Identifier/hcpn-code", "value": "Aklan HCPN"}
         ],
         "telecom": [{"system": "phone", "value": "(043) 756-2233", "use": "work"}],
         "address": [{
@@ -273,23 +274,23 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
           ]
         }]
       },
-      "request": {"method": "POST", "url": "Organization"}
+      "request": {"method": "PUT", "url": "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|3056"}
     },
     {
-      "fullUrl": "urn:uuid:pr-khc",
+      "fullUrl": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9",
       "resource": {
         "resourceType": "PractitionerRole",
         "meta": {
           "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPractitionerRole"]
         },
-        "practitioner": {"reference": "urn:uuid:practitioner-dr-villanueva"},
-        "organization": {"reference": "urn:uuid:org-khc"},
+        "practitioner": {"reference": "urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e"},
+        "organization": {"reference": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
-      "request": {"method": "POST", "url": "PractitionerRole"}
+      "request": {"method": "POST", "url": "PractitionerRole", "ifNoneExist": "PractitionerRole?practitioner=urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e&organization=urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"}
     },
     {
-      "fullUrl": "urn:uuid:org-rstmh",
+      "fullUrl": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126",
       "resource": {
         "resourceType": "Organization",
         "meta": {
@@ -297,8 +298,8 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
         },
         "name": "Dr. Rafael S. Tumbokon Memorial Hospital",
         "identifier": [
-          {"system": "https://nhfr.doh.gov.ph/facility", "value": "042-DH-0012"},
-          {"system": "https://fhir.doh.gov.ph/pheref/Identifier/hcpn", "value": "HCPN-WV-001"}
+          {"system": "https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code", "value": "513"},
+          {"system": "https://fhir.doh.gov.ph/phcore/Identifier/hcpn-code", "value": "Aklan HCPN"}
         ],
         "telecom": [{"system": "phone", "value": "(043) 756-3124", "use": "work"}],
         "address": [{
@@ -315,22 +316,22 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
           ]
         }]
       },
-      "request": {"method": "POST", "url": "Organization"}
+      "request": {"method": "PUT", "url": "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"}
     },
     {
-      "fullUrl": "urn:uuid:pr-rstmh",
+      "fullUrl": "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de",
       "resource": {
         "resourceType": "PractitionerRole",
         "meta": {
           "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPractitionerRole"]
         },
-        "organization": {"reference": "urn:uuid:org-rstmh"},
+        "organization": {"reference": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
-      "request": {"method": "POST", "url": "PractitionerRole"}
+      "request": {"method": "POST", "url": "PractitionerRole", "ifNoneExist": "PractitionerRole?organization=urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"}
     },
     {
-      "fullUrl": "urn:uuid:sr-ana-reyes",
+      "fullUrl": "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759",
       "resource": {
         "resourceType": "ServiceRequest",
         "meta": {
@@ -343,15 +344,15 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
           "text": "Emergency"
         }],
         "authoredOn": "2026-06-18T08:30:00+08:00",
-        "requester": {"reference": "urn:uuid:pr-khc"},
-        "performer": [{"reference": "urn:uuid:pr-rstmh"}],
+        "requester": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"},
+        "performer": [{"reference": "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de"}],
         "reasonCode": [{
           "coding": [{"system": "http://snomed.info/sct", "code": "71388002", "display": "Procedure"}],
           "text": "Severe pre-eclampsia requiring IV antihypertensive, seizure prophylaxis, and maternal-fetal monitoring"
         }],
-        "reasonReference": [{"reference": "urn:uuid:cond-pre-eclampsia"}],
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
+        "reasonReference": [{"reference": "urn:uuid:7166d722-982f-4d35-841d-c63d4d5ec772"}],
+        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
+        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
         "note": [{"text": "Ana Reyes, 38-year-old G2P1, 32 weeks AOG. BP 180/110 mmHg with severe headache, dizziness, and blurring of vision. Proteinuria 3+. Referred for urgent management of severe pre-eclampsia."}],
         "occurrenceDateTime": "2026-06-18T08:30:00+08:00",
         "requisition": {"system": "urn:oid:1.2.840.113619.21.1.2", "value": "REF-2026-001234"}
@@ -359,7 +360,7 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "request": {"method": "POST", "url": "ServiceRequest"}
     },
     {
-      "fullUrl": "urn:uuid:enc-khc",
+      "fullUrl": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce",
       "resource": {
         "resourceType": "Encounter",
         "meta": {
@@ -367,12 +368,12 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
         },
         "status": "finished",
         "class": {"system": "http://terminology.hl7.org/CodeSystem/v3-ActCode", "code": "AMB", "display": "ambulatory"},
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"}
+        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"}
       },
       "request": {"method": "POST", "url": "Encounter"}
     },
     {
-      "fullUrl": "urn:uuid:cond-chief-complaint",
+      "fullUrl": "urn:uuid:99a80644-e928-4fbd-b07f-8ac5fb5675b1",
       "resource": {
         "resourceType": "Condition",
         "meta": {
@@ -384,14 +385,14 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
           "coding": [{"system": "http://snomed.info/sct", "code": "25064002", "display": "Headache"}],
           "text": "Severe headache, dizziness, blurring of vision and epigastric pain for 2 days"
         },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
+        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
+        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
         "note": [{"text": "Chief complaint: severe headache, dizziness, blurring of vision and epigastric pain for 2 days. G2P1, 32 weeks AOG."}]
       },
       "request": {"method": "POST", "url": "Condition"}
     },
     {
-      "fullUrl": "urn:uuid:cond-pre-eclampsia",
+      "fullUrl": "urn:uuid:7166d722-982f-4d35-841d-c63d4d5ec772",
       "resource": {
         "resourceType": "Condition",
         "meta": {
@@ -404,14 +405,14 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
           "coding": [{"system": "http://snomed.info/sct", "code": "398254007", "display": "Pre-eclampsia"}],
           "text": "Severe pre-eclampsia, 32 weeks AOG, G2P1"
         },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
+        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
+        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
         "note": [{"text": "G2P1, 32 weeks AOG. EDD: Aug 20 2026. LMP: Nov 13 2025."}]
       },
       "request": {"method": "POST", "url": "Condition"}
     },
     {
-      "fullUrl": "urn:uuid:obs-bp",
+      "fullUrl": "urn:uuid:27ea0c24-b2e3-4f4e-ba6f-d40b4653232e",
       "resource": {
         "resourceType": "Observation",
         "meta": {
@@ -425,8 +426,8 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
             {"system": "http://snomed.info/sct", "code": "75367002", "display": "Blood pressure"}
           ]
         },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
+        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
+        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
         "effectiveDateTime": "2026-06-18T08:15:00+08:00",
         "component": [
           {
@@ -452,7 +453,7 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
       "request": {"method": "POST", "url": "Observation"}
     },
     {
-      "fullUrl": "urn:uuid:obs-hr",
+      "fullUrl": "urn:uuid:75b09e76-3c93-4a69-af02-71a6d9713558",
       "resource": {
         "resourceType": "Observation",
         "meta": {
@@ -466,15 +467,15 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
             {"system": "http://snomed.info/sct", "code": "78564009", "display": "Pulse rate"}
           ]
         },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
+        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
+        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
         "effectiveDateTime": "2026-06-18T08:15:00+08:00",
         "valueQuantity": {"value": 112, "unit": "beats/minute", "system": "http://unitsofmeasure.org", "code": "/min"}
       },
       "request": {"method": "POST", "url": "Observation"}
     },
     {
-      "fullUrl": "urn:uuid:obs-rr",
+      "fullUrl": "urn:uuid:0bd2221b-dac4-44ec-811b-a10683f301c9",
       "resource": {
         "resourceType": "Observation",
         "meta": {
@@ -488,15 +489,15 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
             {"system": "http://snomed.info/sct", "code": "86290005", "display": "Respiratory rate"}
           ]
         },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
+        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
+        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
         "effectiveDateTime": "2026-06-18T08:15:00+08:00",
         "valueQuantity": {"value": 24, "unit": "breaths/minute", "system": "http://unitsofmeasure.org", "code": "/min"}
       },
       "request": {"method": "POST", "url": "Observation"}
     },
     {
-      "fullUrl": "urn:uuid:obs-spo2",
+      "fullUrl": "urn:uuid:080d6fb5-aed8-4dc0-b7dd-51d38f903819",
       "resource": {
         "resourceType": "Observation",
         "meta": {
@@ -510,15 +511,15 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
             {"system": "http://snomed.info/sct", "code": "103228002", "display": "Hemoglobin saturation with oxygen"}
           ]
         },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
+        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
+        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
         "effectiveDateTime": "2026-06-18T08:15:00+08:00",
         "valueQuantity": {"value": 96, "unit": "%", "system": "http://unitsofmeasure.org", "code": "%"}
       },
       "request": {"method": "POST", "url": "Observation"}
     },
     {
-      "fullUrl": "urn:uuid:obs-temp",
+      "fullUrl": "urn:uuid:3f56fb3e-b0ea-4ab0-a7a5-2adac78d5c9b",
       "resource": {
         "resourceType": "Observation",
         "meta": {
@@ -532,15 +533,15 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
             {"system": "http://snomed.info/sct", "code": "386725007", "display": "Body temperature"}
           ]
         },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
+        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
+        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
         "effectiveDateTime": "2026-06-18T08:15:00+08:00",
         "valueQuantity": {"value": 36.8, "unit": "Celsius", "system": "http://unitsofmeasure.org", "code": "Cel"}
       },
       "request": {"method": "POST", "url": "Observation"}
     },
     {
-      "fullUrl": "urn:uuid:obs-weight",
+      "fullUrl": "urn:uuid:d70026e6-2a52-4f4e-99d3-b73dbf52cfc3",
       "resource": {
         "resourceType": "Observation",
         "meta": {
@@ -554,15 +555,15 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
             {"system": "http://snomed.info/sct", "code": "27113001", "display": "Body weight"}
           ]
         },
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
+        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
+        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
         "effectiveDateTime": "2026-06-18T08:15:00+08:00",
         "valueQuantity": {"value": 72, "unit": "kg", "system": "http://unitsofmeasure.org", "code": "kg"}
       },
       "request": {"method": "POST", "url": "Observation"}
     },
     {
-      "fullUrl": "urn:uuid:proc-treatment",
+      "fullUrl": "urn:uuid:873a6d29-a842-43e7-a267-c3df56193f7f",
       "resource": {
         "resourceType": "Procedure",
         "meta": {
@@ -570,27 +571,27 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
         },
         "status": "completed",
         "code": {"coding": [{"system": "http://snomed.info/sct", "code": "416608005", "display": "Drug therapy"}]},
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
+        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
+        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
         "note": [{"text": "Pre-referral treatment given: Methyldopa 250mg BID, Folic Acid 5mg OD, FeSO4 300mg OD, CaCO3 500mg TID."}]
       },
       "request": {"method": "POST", "url": "Procedure"}
     },
     {
-      "fullUrl": "urn:uuid:dr-urinalysis",
+      "fullUrl": "urn:uuid:1e517f0b-6324-47f1-a626-8ddb5b617c59",
       "resource": {
         "resourceType": "DiagnosticReport",
         "status": "final",
         "code": {"coding": [{"system": "http://loinc.org", "code": "24356-8", "display": "Urinalysis complete panel - Urine"}]},
-        "subject": {"reference": "urn:uuid:patient-ana-reyes"},
-        "encounter": {"reference": "urn:uuid:enc-khc"},
+        "subject": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
+        "encounter": {"reference": "urn:uuid:a86d5b74-f8b5-42c2-b27a-5faff8d84cce"},
         "conclusion": "Proteinuria 3+. Findings consistent with severe pre-eclampsia.",
         "presentedForm": [{"title": "Urinalysis Results — Kalibo Health Center"}]
       },
       "request": {"method": "POST", "url": "DiagnosticReport"}
     },
     {
-      "fullUrl": "urn:uuid:task-referral",
+      "fullUrl": "urn:uuid:05fe9d1b-3653-4a4e-8aa6-9dbb51acb4d4",
       "resource": {
         "resourceType": "Task",
         "meta": {
@@ -602,35 +603,35 @@ The complete Bundle below is ready to POST. It uses `urn:uuid:` temporary identi
           "coding": [{"system": "http://snomed.info/sct", "code": "3457005", "display": "Patient referral"}],
           "text": "eReferral for severe pre-eclampsia management"
         },
-        "focus": {"reference": "urn:uuid:sr-ana-reyes"},
-        "for": {"reference": "urn:uuid:patient-ana-reyes"},
-        "requester": {"reference": "urn:uuid:pr-khc"},
-        "owner": {"reference": "urn:uuid:pr-rstmh"},
+        "focus": {"reference": "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759"},
+        "for": {"reference": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542"},
+        "requester": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"},
+        "owner": {"reference": "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de"},
         "authoredOn": "2026-06-18T08:30:00+08:00",
         "lastModified": "2026-06-18T08:30:00+08:00",
-        "note": [{"text": "New referral for Ana Reyes with severe pre-eclampsia. Awaiting RSTMH response."}]
+        "note": [{"text": "New referral for Ana Reyes with severe pre-eclampsia. Awaiting DRSTMH response."}]
       },
       "request": {"method": "POST", "url": "Task"}
     },
     {
-      "fullUrl": "urn:uuid:prov-signature",
+      "fullUrl": "urn:uuid:6760bfb4-3596-4568-b8ff-b487736a70f5",
       "resource": {
         "resourceType": "Provenance",
         "meta": {
           "profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-provenance"]
         },
         "recorded": "2026-06-18T08:30:00+08:00",
-        "target": [{"reference": "urn:uuid:sr-ana-reyes"}],
+        "target": [{"reference": "urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759"}],
         "activity": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/v3-DataOperation", "code": "CREATE", "display": "create"}]},
         "agent": [{
           "type": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/provenance-participant-type", "code": "author", "display": "Author"}]},
-          "who": {"reference": "urn:uuid:pr-khc"},
-          "onBehalfOf": {"reference": "urn:uuid:org-khc"}
+          "who": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"},
+          "onBehalfOf": {"reference": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"}
         }],
         "signature": [{
           "type": [{"system": "urn:iso-astm:E1762-95:2013", "code": "1.2.840.10065.1.12.1.5", "display": "Verification Signature"}],
           "when": "2026-06-18T08:30:00+08:00",
-          "who": {"reference": "urn:uuid:pr-khc"},
+          "who": {"reference": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"},
           "data": "dGVzdHNpZ25hdHVyZWJhc2U2NA==",
           "sigFormat": {"system": "urn:ietf:bcp:13", "code": "application/signature+xml"}
         }]
@@ -694,10 +695,10 @@ The entries are ordered so that resources referenced by other resources appear f
 | `intent` | Yes | Proposal, plan, order, etc. | `"order"` |
 | `category` | Yes | Referral category code | SNOMED `73770003` (Emergency) |
 | `authoredOn` | Yes | Date and time of referral | `"2026-06-18T08:30:00+08:00"` |
-| `requester` | Yes | Referring facility (PractitionerRole) | `urn:uuid:pr-khc` |
-| `performer` | Yes | Receiving facility (PractitionerRole) | `urn:uuid:pr-rstmh` |
+| `requester` | Yes | Referring facility (PractitionerRole) | `urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9` |
+| `performer` | Yes | Receiving facility (PractitionerRole) | `urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de` |
 | `reasonCode` | Yes | Reason for referral | SNOMED `71388002` (Procedure) |
-| `subject` | Yes | The patient being referred | `urn:uuid:patient-ana-reyes` |
+| `subject` | Yes | The patient being referred | `urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542` |
 
 #### Task Entry
 
@@ -706,10 +707,10 @@ The entries are ordered so that resources referenced by other resources appear f
 | `status` | Yes | Current workflow state | `"requested"` (initial state) |
 | `intent` | Yes | Task intent | `"order"` |
 | `code` | Yes | Type of task | SNOMED `3457005` (Patient referral) |
-| `focus` | Yes | The referral being tracked | `urn:uuid:sr-ana-reyes` |
-| `for` | Yes | Patient the task is for | `urn:uuid:patient-ana-reyes` |
-| `requester` | Yes | Who requested the referral | `urn:uuid:pr-khc` |
-| `owner` | Yes | Who owns/processes the referral | `urn:uuid:pr-rstmh` |
+| `focus` | Yes | The referral being tracked | `urn:uuid:2da5e918-42d1-4d2c-b5dd-570b0b172759` |
+| `for` | Yes | Patient the task is for | `urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542` |
+| `requester` | Yes | Who requested the referral | `urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9` |
+| `owner` | Yes | Who owns/processes the referral | `urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de` |
 
 ---
 
@@ -851,7 +852,7 @@ curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
     "owner": {"reference": "PractitionerRole/{pr-rstmh-id}"},
     "authoredOn": "2026-06-18T08:30:00+08:00",
     "lastModified": "2026-06-18T09:00:00+08:00",
-    "note": [{"text": "Referral received by RSTMH. Pending triage review."}]
+    "note": [{"text": "Referral received by DRSTMH. Pending triage review."}]
   }'
 ```
 
@@ -901,7 +902,7 @@ curl -s -X PUT "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
     "owner": {"reference": "PractitionerRole/{pr-rstmh-id}"},
     "authoredOn": "2026-06-18T08:30:00+08:00",
     "lastModified": "2026-06-18T14:00:00+08:00",
-    "note": [{"text": "Referral completed. Patient admitted and stabilized at RSTMH."}]
+    "note": [{"text": "Referral completed. Patient admitted and stabilized at DRSTMH."}]
   }'
 ```
 
@@ -1089,9 +1090,9 @@ The generated artifact pages in this IG provide the authoritative, rendered view
 | Provenance | [Provenance/ExampleERefProvenanceSubmission](Provenance-ExampleERefProvenanceSubmission.html) |
 | Practitioner — Dr. Villanueva | [Practitioner/ExampleERefPractitionerSubmission](Practitioner-ExampleERefPractitionerSubmission.html) |
 | Organization — KHC | [Organization/ExampleERefOrganizationKaliboHC](Organization-ExampleERefOrganizationKaliboHC.html) |
-| Organization — RSTMH | [Organization/ExampleERefOrganizationRSTMH](Organization-ExampleERefOrganizationRSTMH.html) |
+| Organization — DRSTMH | [Organization/ExampleERefOrganizationDRSTMH](Organization-ExampleERefOrganizationDRSTMH.html) |
 | PractitionerRole — KHC | [PractitionerRole/ExampleERefPractitionerRoleSubmission](PractitionerRole-ExampleERefPractitionerRoleSubmission.html) |
-| PractitionerRole — RSTMH | [PractitionerRole/ExampleERefPractitionerRoleReceiving](PractitionerRole-ExampleERefPractitionerRoleReceiving.html) |
+| PractitionerRole — DRSTMH | [PractitionerRole/ExampleERefPractitionerRoleReceiving](PractitionerRole-ExampleERefPractitionerRoleReceiving.html) |
 
 </div>
 

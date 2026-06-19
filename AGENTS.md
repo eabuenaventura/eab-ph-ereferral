@@ -173,8 +173,8 @@ All Organization instances in the eReferral IG must include at minimum an NHFR (
 
 | Identifier | System URL | Purpose |
 |---|---|---|
-| NHFR | `https://nhfr.doh.gov.ph/facility` | DOH National Health Facility Registry code |
-| HCPN | `https://fhir.doh.gov.ph/pheref/Identifier/hcpn` | Health Care Provider Network identifier |
+| NHFR | `https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code` | DOH National Health Facility Registry code |
+| HCPN | `https://fhir.doh.gov.ph/phcore/Identifier/hcpn-code` | Health Care Provider Network identifier |
 
 ### Organization Example Pattern
 
@@ -182,10 +182,10 @@ All Organization instances in the eReferral IG must include at minimum an NHFR (
 Instance: ExampleOrganizationFacility
 InstanceOf: PHCoreOrganization
 * name = "Example Health Center"
-* identifier[0].system = "https://nhfr.doh.gov.ph/facility"
+* identifier[0].system = "https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code"
 * identifier[0].value = "FAC-12345"
-* identifier[+].system = "https://fhir.doh.gov.ph/pheref/Identifier/hcpn"
-* identifier[=].value = "HCPN-WV-001"
+* identifier[+].system = "https://fhir.doh.gov.ph/phcore/Identifier/hcpn-code"
+* identifier[=].value = "Aklan HCPN"
 * address.line = "123 Hospital Road"
 * address.postalCode = "5600"
 * address.country = "PH"
