@@ -1,117 +1,129 @@
 #!/usr/bin/env python3
-"""Generate a styled HTML table from data-dictionary.csv for the IG.
+"""Generate a markdown table from the TDG FHIR Mapping CSV for the IG data dictionary.
 
 Run this script from anywhere; it resolves paths relative to its own location.
+
+Usage:
+    python input/generate_data_dictionary_table.py
+    python input/generate_data_dictionary_table.py --csv "TDG FHIR Mapping v2.csv"
 """
 
+import argparse
 import csv
 import html
+import re
 import sys
 from pathlib import Path
 
-# Resolve paths relative to this script (inside input/)
-INPUT_DIR = Path(__file__).resolve().parent
-CSV_FILE = INPUT_DIR / "images" / "data-dictionary.csv"
-OUTPUT_FILE = INPUT_DIR / "includes" / "data-dictionary-table.html"
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+OUTPUT_FILE = SCRIPT_DIR / "includes" / "data-dictionary-table.md"
 
 
-def escape_html(text: str) -> str:
-    """Escape HTML entities and normalize whitespace."""
+def escape_cell(text: str) -> str:
+    """Escape a cell value for markdown table display.
+
+    Multi-line cells have newlines replaced with <br> for HTML rendering
+    inside Jekyll markdown tables. Pipe characters are escaped.
+    """
     if not text:
         return ""
-    # Replace newlines with <br> for HTML display
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = html.escape(text)
     text = text.replace("\n", "<br>")
+    text = text.replace("|", "&#124;")
     return text
 
 
-def generate_table() -> str:
-    """Read CSV and generate styled HTML table."""
-    if not CSV_FILE.exists():
-        print(f"Error: {CSV_FILE} not found.", file=sys.stderr)
+def read_csv(csv_path: Path) -> list[list[str]]:
+    """Read the CSV and return rows, stripping trailing empty columns."""
+    if not csv_path.exists():
+        print(f"Error: {csv_path} not found.", file=sys.stderr)
         sys.exit(1)
 
-    rows = []
-    with open(CSV_FILE, "r", encoding="utf-8", newline="") as f:
+    with open(csv_path, "r", encoding="utf-8", newline="") as f:
         reader = csv.reader(f)
-        for row in reader:
-            rows.append(row)
+        rows = [row for row in reader]
 
+    return rows
+
+
+def is_header_row(row: list[str]) -> bool:
+    """The real header row has 'Workflow Task' in the first column."""
+    return len(row) > 0 and row[0].strip() == "Workflow Task"
+
+
+def is_note_row(row: list[str]) -> bool:
+    """Skip rows whose Element ID starts with 'NOTE' or is empty (sub-header)."""
+    if len(row) < 2:
+        return True
+    eid = row[1].strip() if len(row) > 1 else ""
+    return eid == "" or eid.startswith("NOTE")
+
+
+def generate_table(rows: list[list[str]]) -> str:
+    """Convert CSV rows to a markdown table with {:.ph-table} IAL."""
     if not rows:
-        return "<p>No data found.</p>"
+        return "No data found."
 
-    # Header row (row 0)
-    headers = rows[0]
-    # Skip the header description row (row 1, where Element ID is empty)
-    data_rows = rows[2:]
+    # Find the header row
+    header_idx = None
+    for i, row in enumerate(rows):
+        if is_header_row(row):
+            header_idx = i
+            break
 
-    # Map headers to CSS classes for styling
-    def header_to_class(h: str) -> str:
-        class_map = {
-            "Description/Definition": "col-description",
-            "CDG Comments": "col-comments",
-            "[FINAL] FHIR Element (R4)": "col-fhir-element",
-            "Linked By": "col-linked-by",
-            "Value Set": "col-value-set",
-            "TDG Comments": "col-tdg-comments",
-            "Workflow Task": "col-workflow",
-            "Element ID": "col-element-id",
-            "Required?": "col-required",
-        }
-        return class_map.get(h, "")
+    if header_idx is None:
+        print("Error: Could not find header row in CSV.", file=sys.stderr)
+        sys.exit(1)
 
-    header_classes = [header_to_class(h) for h in headers]
+    headers = rows[header_idx]
+    data_rows = [row for row in rows[header_idx + 1:] if not is_note_row(row)]
 
-    # Build HTML
-    lines = [
-        '<div class="table-responsive data-dictionary-wrapper ph-table">',
-        '  <table class="table table-bordered table-striped table-condensed">',
-        '    <thead class="thead-dark">',
-        '      <tr>',
-    ]
-    for h, cls in zip(headers, header_classes):
-        class_attr = f' class="{cls}"' if cls else ""
-        lines.append(f"        <th{class_attr}>{escape_html(h)}</th>")
-    lines.extend([
-        '      </tr>',
-        '    </thead>',
-        '    <tbody>',
-    ])
+    if not data_rows:
+        return "No data rows found."
 
+    lines = []
+
+    # Header
+    lines.append("| " + " | ".join(escape_cell(h) for h in headers) + " |")
+
+    # Separator
+    lines.append("|" + "|".join(" --- " for _ in headers) + "|")
+
+    # Data rows
     for row in data_rows:
-        # Ensure we have the same number of cells as headers
         cells = row[:len(headers)]
         while len(cells) < len(headers):
             cells.append("")
+        escaped = [escape_cell(c) for c in cells]
+        lines.append("| " + " | ".join(escaped) + " |")
 
-        lines.append('      <tr>')
-        for cell, cls in zip(cells, header_classes):
-            cell_html = escape_html(cell)
-            if not cell_html:
-                cell_html = "&nbsp;"
-            class_attr = f' class="{cls}"' if cls else ""
-            lines.append(f"        <td{class_attr}>{cell_html}</td>")
-        lines.append('      </tr>')
-
-    lines.extend([
-        '    </tbody>',
-        '  </table>',
-        '</div>',
-    ])
+    lines.append("{:.ph-table}")
 
     return "\n".join(lines)
 
 
 def main():
-    # Ensure includes directory exists
+    parser = argparse.ArgumentParser(
+        description="Generate markdown data dictionary table from TDG FHIR Mapping CSV."
+    )
+    parser.add_argument(
+        "--csv",
+        default="TDG FHIR Mapping.csv",
+        help="CSV filename relative to repo root (default: 'TDG FHIR Mapping.csv')",
+    )
+    args = parser.parse_args()
+
+    csv_path = REPO_ROOT / args.csv
+    rows = read_csv(csv_path)
+    content = generate_table(rows)
+
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-
-    html_content = generate_table()
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        f.write(html_content)
+        f.write(content.strip() + "\n")
 
-    print(f"Generated {OUTPUT_FILE} ({len(html_content)} bytes)")
+    print(f"Generated {OUTPUT_FILE} ({len(content)} bytes) from {csv_path.name}")
 
 
 if __name__ == "__main__":

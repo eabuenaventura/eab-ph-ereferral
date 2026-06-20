@@ -54,14 +54,14 @@ referral clinical summaries. Linked to the encounter via Observation.encounter."
 // Reference: http://hl7.org/fhir/valueset-observation-category.html
 // -----------------------------------------------------------------------------
 * category MS
-* insert ObligationOptional
+* category insert ObligationOptional
 
 // -----------------------------------------------------------------------------
 // TDG Row REF-31, REF-33-38: Subject required for all clinical observations.
 // Constrained to ERefPatient for eReferral context (not Group, Device, or Location).
 // -----------------------------------------------------------------------------
 * subject MS
-* insert ObligationOptional
+* subject insert ObligationOptional
 * subject only Reference(ERefPatient)
 
 // -----------------------------------------------------------------------------
@@ -78,7 +78,7 @@ referral clinical summaries. Linked to the encounter via Observation.encounter."
 // Reference: https://fhir.doh.gov.ph/pheref
 // -----------------------------------------------------------------------------
 * encounter MS
-* insert ObligationOptional
+* encounter insert ObligationOptional
 * encounter only Reference(ERefEncounter)
 
 // =============================================================================

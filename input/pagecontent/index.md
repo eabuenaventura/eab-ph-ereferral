@@ -99,6 +99,7 @@ PH eReferral fits into the Philippine FHIR IG architecture as a **use case layer
 | Core | [PH Core IG](https://github.com/UP-Manila-SILab/ph-core) | **Base profiles** – Foundational rules, common extensions, and national identifiers (Patient, Practitioner, Organization, Encounter, etc.) |
 | **Use Case** | **PH eReferral IG** | **Referral-specific workflows and interactions** – HCPN referral messaging built on PH Core |
 | Program | Program-specific IGs | Tailored implementations for specific health programs or facilities |
+{:.ph-table}
 
 PH Core provides the **parent/base profiles** used by this IG. PH eReferral:
 

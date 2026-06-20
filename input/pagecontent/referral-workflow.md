@@ -38,7 +38,11 @@ These references inform the workflow scope, especially the emphasis on coordinat
 
 The following diagram reflects the latest minimum viable workflow discussed by the Clinical Design Group for the v0.1 baseline.
 
+<div class="ph-scroll" markdown="1">
+
 ![Minimum viable referral workflow](minimum-viable-workflow.png)
+
+</div>
 
 The diagram uses the lanes `Initiator`, `Receiving Service`, and `Recipient`. The `Accept` and `Reject` labels shown in the decision point map to the v0.1 receiving-facility response terms resolved in [Issue #47](https://github.com/ph-ereferral-organization/ph-ereferral/issues/47) by [PR #84](https://github.com/ph-ereferral-organization/ph-ereferral/pull/84): `received`, `accepted`, `rejected`, and `referred-onward`. In this IG, `rejected` is limited to cases where the receiving facility cannot take the case and no onward facility is identified in the same response; capacity-full rerouting is represented as `referred-onward`.
 

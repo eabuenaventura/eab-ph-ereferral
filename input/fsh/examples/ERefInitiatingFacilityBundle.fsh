@@ -74,6 +74,7 @@
  *   - Provider:           Dr. Maria Villanueva, Primary Care Physician
  *   - Destination (To):   Dr. Rafael S. Tumbokon Memorial Hospital 
  *                         (NHFR: 513)
+ *   - Care Navigator:     Dr. Carlos Lim, Receiving Physician
  */
 
 // --- PATIENT — REF-21 (name), REF-22 (gender), REF-23 (birthDate) -----------
@@ -158,6 +159,23 @@ Description: "Dr. Maria Villanueva, primary care physician at Kalibo Health Cent
 * identifier.value = "5466863"
 
 
+// --- PRACTITIONER (Receiving) — REF-9 Care Navigator (No, conditional) ---------
+Instance: ExampleERefPractitionerReceiving
+InstanceOf: PHCorePractitioner
+Usage: #example
+Title: "Example Receiving Practitioner — Dr. Carlos Lim"
+Description: "Dr. Carlos Lim, receiving physician and care navigator at Dr. Rafael S. Tumbokon Memorial Hospital."
+
+* name.use = #official
+* name.family = "Lim"
+* name.given[0] = "Carlos"
+* name.prefix = "Dr."
+
+// PRC License identifier — used for conditional PUT in submission Bundle
+* identifier.system = "https://prc.gov.ph/"
+* identifier.value = "7890123"
+
+
 // --- ORGANIZATION (Referring) — REF-5 Name (Yes), REF-6 NHFR (Yes) -----------
 Instance: ExampleERefOrganizationKaliboHC
 InstanceOf: PHCoreOrganization
@@ -203,19 +221,19 @@ Description: "Links Dr. Maria Villanueva to Kalibo Health Center as a primary ca
 
 
 // --- PRACTITIONERROLE (Receiving) — REF-9/10/11 Care Navigator + Facility -----
-// Practitioner not yet assigned; organization carries the receiving facility
 Instance: ExampleERefPractitionerRoleReceiving
 InstanceOf: ERefPractitionerRole
 Usage: #example
-Title: "Example PractitionerRole — Receiving Facility at DRSTMH"
-Description: "PractitionerRole representing the receiving facility at DRSTMH for Task.owner linkage. Practitioner not yet assigned at initial submission."
+Title: "Example PractitionerRole — Dr. Carlos Lim at DRSTMH"
+Description: "PractitionerRole linking Dr. Carlos Lim (care navigator) to Dr. Rafael S. Tumbokon Memorial Hospital for Task.owner and ServiceRequest.performer linkage."
 
+* practitioner.reference = "urn:uuid:4f8b2c1d-9a3e-4b7c-8d1f-2e6a5b3c0d9e"
 * organization.reference = "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"
 * code = $sct#158965000 "Medical practitioner"
 
-// Inherited identifier from Organization (NHFR) for conditional PUT
-* identifier.system = "https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code"
-* identifier.value = "513"
+// Inherited identifier from Practitioner (PRC) for conditional PUT
+* identifier.system = "https://prc.gov.ph/"
+* identifier.value = "7890123"
 
 
 // --- ORGANIZATION (Receiving) — REF-10 Name (Yes), REF-11 NHFR (Yes) ---------
@@ -555,7 +573,6 @@ Description: "Provenance record with professional signature for Ana Reyes' refer
 * signature[=].when = "2026-06-18T08:30:00+08:00"
 * signature[=].who.reference = "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"
 * signature[=].data = "dGVzdHNpZ25hdHVyZWJhc2U2NA=="
-* signature[=].sigFormat = #application/signature+xml
 
 
 // =============================================================================
@@ -571,9 +588,9 @@ Description: "Provenance record with professional signature for Ana Reyes' refer
 //   Conditional PUT with an identifier achieves idempotent upsert semantics.
 //
 // Why inherited identifiers for PractitionerRole?
-//   PractitionerRole inherits the Practitioner's PRC identifier (KHC) or the
-//   Organization's NHFR identifier (DRSTMH), enabling direct conditional PUT
-//   without chained search parameters.
+//   PractitionerRole referring (KHC) inherits the Practitioner's PRC identifier.
+//   PractitionerRole receiving (DRSTMH) inherits the Care Navigator Practitioner's PRC identifier.
+//   A direct identifier match on PractitionerRole is simpler and more reliable than chained search.
 //
 // Why POST for clinical/business data?
 //   Each referral represents a new clinical event. Observations, Conditions,
@@ -603,11 +620,17 @@ Description: "Transaction bundle for the initial referral submission from Kalibo
 * entry[=].request.method = #PUT
 * entry[=].request.url = "Patient?identifier=http://philsys.gov.ph/fhir/Identifier/philsys-id|7731-0812-4491-0326"
 
-// Practitioner — conditional PUT by PRC license number
+// Practitioner (Referring: KHC) — conditional PUT by PRC license number
 * entry[+].fullUrl = "urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e"
 * entry[=].resource = ExampleERefPractitionerSubmission
 * entry[=].request.method = #PUT
 * entry[=].request.url = "Practitioner?identifier=https://prc.gov.ph/|5466863"
+
+// Practitioner (Receiving: DRSTMH Care Navigator) — conditional PUT by PRC license number
+* entry[+].fullUrl = "urn:uuid:4f8b2c1d-9a3e-4b7c-8d1f-2e6a5b3c0d9e"
+* entry[=].resource = ExampleERefPractitionerReceiving
+* entry[=].request.method = #PUT
+* entry[=].request.url = "Practitioner?identifier=https://prc.gov.ph/|7890123"
 
 // Organization (Referring: KHC) — conditional PUT by NHFR facility code
 * entry[+].fullUrl = "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"
@@ -623,8 +646,8 @@ Description: "Transaction bundle for the initial referral submission from Kalibo
 
 // ---- PractitionerRole: Conditional PUT with inherited identifiers -----------------
 //
-//   PR KHC inherits the Practitioner's PRC identifier.
-//   PR DRSTMH inherits the Organization's NHFR identifier.
+//   PR KHC inherits the Practitioner's PRC identifier (Dr. Villanueva).
+//   PR DRSTMH inherits the Care Navigator Practitioner's PRC identifier (Dr. Carlos Lim).
 //   A direct identifier match is simpler and more reliable than chained search.
 
 // PR KHC — resubmission matches by PRC ID (inherited from Practitioner)
@@ -633,11 +656,11 @@ Description: "Transaction bundle for the initial referral submission from Kalibo
 * entry[=].request.method = #PUT
 * entry[=].request.url = "PractitionerRole?identifier=https://prc.gov.ph/|5466863"
 
-// PR DRSTMH — resubmission matches by NHFR code (inherited from Organization)
+// PR DRSTMH — resubmission matches by PRC ID (inherited from Care Navigator Practitioner)
 * entry[+].fullUrl = "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de"
 * entry[=].resource = ExampleERefPractitionerRoleReceiving
 * entry[=].request.method = #PUT
-* entry[=].request.url = "PractitionerRole?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"
+* entry[=].request.url = "PractitionerRole?identifier=https://prc.gov.ph/|7890123"
 
 // ---- Clinical / Business Data: Always POST (new resources per referral) ------
 

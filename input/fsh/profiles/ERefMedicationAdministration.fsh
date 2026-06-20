@@ -16,19 +16,19 @@ Description: "Profile for medications administered to patients in the Philippine
 
 // Must Support elements for eReferral clinical context
 * status MS
-* insert ObligationRequired
+* status insert ObligationRequired
 
 * medication[x] MS
-* insert ObligationRequired
+* medication[x] insert ObligationRequired
 
 
 * subject MS
-* insert ObligationRequired
+* subject insert ObligationRequired
 * subject only Reference(ERefPatient)
 
 * context MS
-* insert ObligationOptional
+* context insert ObligationOptional
 * context only Reference(ERefEncounter)
 
 * effective[x] MS
-* insert ObligationRequired
+* effective[x] insert ObligationRequired

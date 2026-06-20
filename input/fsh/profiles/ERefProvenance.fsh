@@ -10,13 +10,13 @@ Description: "Profile for tracking audit trail of eReferral actions including si
 
 // TDG Row REF-3: "Date & Time of Signature"
 * recorded MS
-* insert ObligationOptional
+* recorded insert ObligationOptional
 
 // TDG Row REF-4: "Professional Signature" -> Provenance.signature with child constraints per issue #31
 // Must Support and cardinality for professional signature (REF-4)
 * signature MS
-* insert ObligationOptional
+* signature insert ObligationOptional
 * signature.who MS
 * signature.who only Reference(ERefPractitionerRole)
 * signature.data MS
-* insert ObligationOptional
+* signature.data insert ObligationOptional

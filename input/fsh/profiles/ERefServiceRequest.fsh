@@ -12,7 +12,7 @@ Description: "Profile for ServiceRequest resource in the Philippine eReferral co
 // TDG Row REF-7: "Initiating Facility Address" -> ServiceRequest.requester (via PractitionerRole's Organization.address)
 // TDG Row REF-8: "Initiating Facility Contact Number" -> ServiceRequest.requester (via PractitionerRole's Organization.telecom)
 * requester 1..1 MS
-* insert ObligationRequired
+* requester insert ObligationRequired
 * requester only Reference(ERefPractitionerRole)
 
 // TDG Row REF-3: "Date & Time of Signature" - Audit trail via Provenance (linked via relevantHistory)
@@ -20,7 +20,7 @@ Description: "Profile for ServiceRequest resource in the Philippine eReferral co
 * relevantHistory MS
   * ^short = "Referral audit trail"
   * ^definition = "References to Provenance records that track changes and signatures for the referral."
-* insert ObligationOptional
+* relevantHistory insert ObligationOptional
 * relevantHistory only Reference(ERefProvenance)
 
 
@@ -29,7 +29,7 @@ Description: "Profile for ServiceRequest resource in the Philippine eReferral co
 // TDG Row REF-10: "Receiving Facility Name" -> ServiceRequest.performer -> PractitionerRole.organization.display
 // TDG Row REF-11: "Receiving Facility NHFR Code" -> ServiceRequest.performer -> PractitionerRole.organization.identifier
 * performer MS
-* insert ObligationOptional
+* performer insert ObligationOptional
 * performer only Reference(PHCoreOrganization or ERefPractitionerRole)
   * ^short = "Receiving facility or practitioner"
   * ^definition = "The facility or practitioner expected to perform the service. For eReferral, this is typically the receiving healthcare facility."
@@ -40,18 +40,18 @@ Description: "Profile for ServiceRequest resource in the Philippine eReferral co
 * authoredOn MS
   * ^short = "When the referral was authored"
   * ^definition = "The date and time when the referral request was created."
-* insert ObligationOptional
+* authoredOn insert ObligationOptional
 
 
 // TDG Row REF-14: "Referral Category" - Urgency and setting (emergency vs outpatient/routine)
 * category MS
-* insert ObligationOptional
+* category insert ObligationOptional
 * category from EReferralServiceCategory (required)
   * ^short = "Referral Category - Urgency and setting"
   * ^definition = "Referral Category - Urgency and setting (emergency vs outpatient/routine)"
 
 * intent MS
-* insert ObligationOptional
+* intent insert ObligationOptional
 * intent = #order (exactly)
   * ^short = "Intent is always 'order' for referrals"
   * ^definition = "eReferrals are always orders for services to be performed by the receiving facility."
@@ -61,36 +61,36 @@ Description: "Profile for ServiceRequest resource in the Philippine eReferral co
 * occurrence[x] MS
   * ^short = "When the service is needed"
   * ^definition = "The date/time or period when the service should be performed."
-* insert ObligationOptional
+* occurrence[x] insert ObligationOptional
 
 * supportingInfo only Reference(ERefCondition or ERefObservation or ERefProcedure or ERefMedicationAdministration or ERefImmunization)
 
 // TDG Row REF-16: "Reason for Referral (service type)" - Clinical reason for the referral
 // TERMINOLOGY: for review
 * reasonCode MS
-* insert ObligationOptional
+* reasonCode insert ObligationOptional
 * reasonCode from EReferralReason (required)
   * ^short = "Reason for referral"
   * ^definition = "The clinical reason for the referral, describing why the service is being requested."
 
 // TDG Row REF-16: Supporting clinical information (conditions, observations)
 * reasonReference MS
-* insert ObligationOptional
+* reasonReference insert ObligationOptional
 
 * reasonReference only Reference(ERefCondition or ERefObservation)
 
 // TDG Row REF-21: "Patient Full Name" (and related patient demographics)
 * subject MS
-* insert ObligationOptional
+* subject insert ObligationOptional
 * subject only Reference(ERefPatient)
 
 * encounter MS
-* insert ObligationOptional
+* encounter insert ObligationOptional
 * encounter only Reference(ERefEncounter)
 
 // Free-text notes from referring practitioner (no specific TDG row)
 * note MS
-* insert ObligationOptional
+* note insert ObligationOptional
 
 
 

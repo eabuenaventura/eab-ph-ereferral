@@ -50,8 +50,10 @@ This tutorial walks you through the complete eReferral initiation workflow using
 | **Referring Provider** | Dr. Maria Villanueva, Primary Care Physician |
 | **Referring Facility** | Kalibo Health Center (NHFR: 3056) |
 | **Receiving Facility** | Dr. Rafael S. Tumbokon Memorial Hospital — DRSTMH (NHFR: 513) |
+| **Receiving Practitioner** | Dr. Carlos Lim, Care Navigator (PRC: 7890123) |
 | **Referral Category** | Emergency |
 | **Reason Category** | Procedure |
+{:.ph-table}
 
 ### What This Referral Models
 
@@ -91,6 +93,7 @@ The eReferral IG uses codes from multiple terminology systems. Here is how to ve
 | `http://terminology.hl7.org/CodeSystem/v3-RoleCode` | HL7 v3 RoleCode | Contact relationships (HUSB, WIFE, etc.) |
 | `http://terminology.hl7.org/CodeSystem/v3-DataOperation` | HL7 v3 DataOperation | Provenance activity (CREATE, UPDATE, etc.) |
 | `urn:iso-astm:E1762-95:2013` | Signature Type Codes | Digital signature types |
+{:.ph-table}
 
 ### Code Lookup Commands
 
@@ -186,9 +189,9 @@ Master data entries use FHIR's [conditional update](https://www.hl7.org/fhir/htt
 
 This makes repeated submissions **idempotent** — posting the same referral twice won't create duplicate Patient, Practitioner, Organization, or PractitionerRole records.
 
-### The 6 Conditional PUT Entries
+### The 7 Conditional PUT Entries
 
-The full bundle contains 20 entries. The 6 master data entries below use conditional PUT. The remaining 14 clinical entries (ServiceRequest, Encounter, Conditions, Observations, Procedure, DiagnosticReport, Task, Provenance) use plain POST.
+The full bundle contains 20 entries. The 7 master data entries below use conditional PUT. The remaining 13 clinical entries (ServiceRequest, Encounter, Conditions, Observations, Procedure, DiagnosticReport, Task, Provenance) use plain POST.
 
 #### Request
 
@@ -211,7 +214,6 @@ Accept: application/fhir+json
   "entry": [
     // ── Master Data: Conditional PUT entries (upsert via identifier) ──
     {
-      // PUT by PhilSys ID → upsert Patient
       "fullUrl": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542",
       "resource": {
         "resourceType": "Patient",
@@ -237,10 +239,10 @@ Accept: application/fhir+json
           "name": {"use": "official", "family": "Reyes", "given": ["Roberto"]}
         }]
       },
+      // PUT by PhilSys ID → upsert Patient
       "request": {"method": "PUT", "url": "Patient?identifier=http://philsys.gov.ph/fhir/Identifier/philsys-id|7731-0812-4491-0326"}
     },
     {
-      // PUT by PRC license number → upsert Practitioner
       "fullUrl": "urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e",
       "resource": {
         "resourceType": "Practitioner",
@@ -248,10 +250,21 @@ Accept: application/fhir+json
         "identifier": [{"system": "https://prc.gov.ph/", "value": "5466863"}],
         "name": [{"use": "official", "family": "Villanueva", "given": ["Maria"], "prefix": ["Dr."]}]
       },
+      // PUT by PRC license number → upsert Practitioner (referring: Dr. Villanueva)
       "request": {"method": "PUT", "url": "Practitioner?identifier=https://prc.gov.ph/|5466863"}
     },
     {
-      // PUT by NHFR code → upsert Organization (referring: KHC)
+      "fullUrl": "urn:uuid:4f8b2c1d-9a3e-4b7c-8d1f-2e6a5b3c0d9e",
+      "resource": {
+        "resourceType": "Practitioner",
+        "meta": {"profile": ["https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner"]},
+        "identifier": [{"system": "https://prc.gov.ph/", "value": "7890123"}],
+        "name": [{"use": "official", "family": "Lim", "given": ["Carlos"], "prefix": ["Dr."]}]
+      },
+      // PUT by PRC license number → upsert Practitioner (receiving: Dr. Carlos Lim)
+      "request": {"method": "PUT", "url": "Practitioner?identifier=https://prc.gov.ph/|7890123"}
+    },
+    {
       "fullUrl": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b",
       "resource": {
         "resourceType": "Organization",
@@ -272,10 +285,10 @@ Accept: application/fhir+json
           ]
         }]
       },
+      // PUT by NHFR code → upsert Organization (referring: KHC)
       "request": {"method": "PUT", "url": "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|3056"}
     },
     {
-      // PUT by PRC ID → upsert PractitionerRole (referring: KHC, inherits Practitioner's PRC)
       "fullUrl": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9",
       "resource": {
         "resourceType": "PractitionerRole",
@@ -284,10 +297,10 @@ Accept: application/fhir+json
         "organization": {"reference": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
+      // PUT by PRC ID → upsert PractitionerRole (referring: KHC, inherits Practitioner's PRC)
       "request": {"method": "PUT", "url": "PractitionerRole?identifier=https://prc.gov.ph/|5466863"}
     },
     {
-      // PUT by NHFR code → upsert Organization (receiving: DRSTMH)
       "fullUrl": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126",
       "resource": {
         "resourceType": "Organization",
@@ -299,21 +312,23 @@ Accept: application/fhir+json
         ],
         "telecom": [{"system": "phone", "value": "(043) 756-3124", "use": "work"}]
       },
+      // PUT by NHFR code → upsert Organization (receiving: DRSTMH)
       "request": {"method": "PUT", "url": "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"}
     },
     {
-      // PUT by NHFR code → upsert PractitionerRole (receiving: DRSTMH, inherits Organization's NHFR)
       "fullUrl": "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de",
       "resource": {
         "resourceType": "PractitionerRole",
         "meta": {"profile": ["https://fhir.doh.gov.ph/pheref/StructureDefinition/ERefPractitionerRole"]},
+        "practitioner": {"reference": "urn:uuid:4f8b2c1d-9a3e-4b7c-8d1f-2e6a5b3c0d9e"},
         "organization": {"reference": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
-      "request": {"method": "PUT", "url": "PractitionerRole?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"}
+      // PUT by PRC ID → upsert PractitionerRole (receiving: DRSTMH, inherits Dr. Carlos Lim's PRC)
+      "request": {"method": "PUT", "url": "PractitionerRole?identifier=https://prc.gov.ph/|7890123"}
     }
     // ── Clinical / Business Data: POST entries (new resource per referral) ──
-    // Entries 7–20 (ServiceRequest, Encounter, Conditions, Observations,
+    // Entries 8–20 (ServiceRequest, Encounter, Conditions, Observations,
     // Procedure, DiagnosticReport, Task, Provenance) all use POST.
     // See the full Bundle JSON download for all 20 entries.
   ]
@@ -703,7 +718,7 @@ Accept: application/fhir+json
 
 ```jsonc
 // Transaction Bundle — 20 entries, submit as a single file.
-// Master data (entries 1–6): PUT  + identifier → upsert
+  // Master data (entries 1–7): PUT  + identifier → upsert
 // Clinical data   (entries 7–20): POST             → new resource per referral
 // Intra-bundle references use urn:uuid: matching each entry's fullUrl.
 // See "The Transaction Bundle" section above for the complete annotated JSON.
@@ -711,8 +726,8 @@ Accept: application/fhir+json
   "resourceType": "Bundle",
   "type": "transaction",
   "entry": [
-    // entries 1–6: Patient, Practitioner, 2× Organization, 2× PractitionerRole (PUT)
-    // entries 7–20: ServiceRequest, Encounter, 2× Condition, 6× Observation,
+    // entries 1–7: Patient, 2× Practitioner, 2× Organization, 2× PractitionerRole (PUT)
+    // entries 8–20: ServiceRequest, Encounter, 2× Condition, 6× Observation,
     //              Procedure, DiagnosticReport, Task, Provenance (POST)
   ]
 }
@@ -821,7 +836,7 @@ curl -s "https://cdr.fhirlab.net/fhir/Task/{task-id}" \
 ### Bundle Structure
 
 - The eReferral initiation Bundle is a **`transaction`** type Bundle — all entries succeed or fail atomically
-- **Master data** (Patient, Practitioner, Organization, PractitionerRole) uses conditional **PUT** — resubmitting the same identifiers updates existing records. PractitionerRole inherits identifiers from its linked Practitioner (PRC) or Organization (NHFR).
+- **Master data** (Patient, Practitioner ×2, Organization ×2, PractitionerRole ×2) uses conditional **PUT** — resubmitting the same identifiers updates existing records. PractitionerRole inherits identifiers from its linked Practitioner (PRC).
 - **Clinical data** (ServiceRequest, Encounter, Condition, Observation, Procedure, DiagnosticReport, Task, Provenance) uses **POST** — each referral generates new clinical records
 - Intra-Bundle references use **`urn:uuid:`** identifiers matching entry `fullUrl` values
 
@@ -898,6 +913,7 @@ The generated artifact pages in this IG provide the authoritative, rendered view
 | Task — Requested | [Task/ExampleERefTaskRequested](Task-ExampleERefTaskRequested.html) |
 | Provenance | [Provenance/ExampleERefProvenanceSubmission](Provenance-ExampleERefProvenanceSubmission.html) |
 | Practitioner — Dr. Villanueva | [Practitioner/ExampleERefPractitionerSubmission](Practitioner-ExampleERefPractitionerSubmission.html) |
+| Practitioner — Dr. Carlos Lim | [Practitioner/ExampleERefPractitionerReceiving](Practitioner-ExampleERefPractitionerReceiving.html) |
 | Organization — KHC | [Organization/ExampleERefOrganizationKaliboHC](Organization-ExampleERefOrganizationKaliboHC.html) |
 | Organization — DRSTMH | [Organization/ExampleERefOrganizationDRSTMH](Organization-ExampleERefOrganizationDRSTMH.html) |
 | PractitionerRole — KHC | [PractitionerRole/ExampleERefPractitionerRoleSubmission](PractitionerRole-ExampleERefPractitionerRoleSubmission.html) |
