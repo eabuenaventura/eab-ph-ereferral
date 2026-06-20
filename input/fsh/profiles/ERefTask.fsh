@@ -19,7 +19,7 @@ Description: "Task profile for Philippine eReferral workflow management. Tracks 
 // Action: Add MS flag + fix to #order for referral workflows
 // -----------------------------------------------------------------------------
 * intent MS
-* insert ObligationOptional
+* intent insert ObligationOptional
 * intent = #order (exactly)
 * intent ^short = "Fixed to 'order' for referrals"
 * intent ^definition = "The intent is fixed to 'order' as eReferral tasks represent actionable orders for services to be performed by receiving facilities."
@@ -29,7 +29,7 @@ Description: "Task profile for Philippine eReferral workflow management. Tracks 
 // Action: Change cardinality + add MS (TDG business requirement)
 // -----------------------------------------------------------------------------
 * focus 1..1 MS
-* insert ObligationRequired
+* focus insert ObligationRequired
 * focus only Reference(ERefServiceRequest)
 
 // -----------------------------------------------------------------------------
@@ -37,7 +37,7 @@ Description: "Task profile for Philippine eReferral workflow management. Tracks 
 // Action: Change cardinality + add MS (TDG business requirement)
 // -----------------------------------------------------------------------------
 * requester 1..1 MS
-* insert ObligationRequired
+* requester insert ObligationRequired
 * requester only Reference(ERefPractitionerRole or PHCorePractitioner or PHCoreOrganization)
 * requester ^short = "Requesting practitioner or facility"
 * requester ^definition = "The practitioner or facility that created the referral task. Represents the initiating side of the eReferral workflow. PractitionerRole Preferred to associate Organization and Practitioner"
@@ -47,7 +47,7 @@ Description: "Task profile for Philippine eReferral workflow management. Tracks 
 // Action: Add MS only (keep 0..1 cardinality)
 // -----------------------------------------------------------------------------
 * owner MS
-* insert ObligationOptional
+* owner insert ObligationOptional
 
 * owner only Reference(PHCorePractitioner or PHCorePractitionerRole or PHCoreOrganization)
 * owner ^short = "Assigned care navigator or receiving facility"
@@ -58,7 +58,7 @@ Description: "Task profile for Philippine eReferral workflow management. Tracks 
 // Action: Add MS only (keep 0..1 cardinality)
 // -----------------------------------------------------------------------------
 * authoredOn MS
-* insert ObligationOptional
+* authoredOn insert ObligationOptional
 
 * authoredOn ^short = "When task was created"
 * authoredOn ^definition = "The date and time when the eReferral task was created."
@@ -68,7 +68,7 @@ Description: "Task profile for Philippine eReferral workflow management. Tracks 
 // Action: Add MS only (keep 0..1 cardinality)
 // -----------------------------------------------------------------------------
 * lastModified MS
-* insert ObligationOptional
+* lastModified insert ObligationOptional
 
 * lastModified ^short = "When task was last updated"
 * lastModified ^definition = "The date and time when the eReferral task was last modified."
@@ -78,7 +78,7 @@ Description: "Task profile for Philippine eReferral workflow management. Tracks 
 // -----------------------------------------------------------------------------
 
 * for MS
-* insert ObligationOptional
+* for insert ObligationOptional
 * for only Reference(ERefPatient)
 
 

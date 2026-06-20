@@ -10,19 +10,19 @@ Description: "Condition profile for diagnoses, problems, or clinical conditions 
 
 
 * subject MS
-* insert ObligationOptional
+* subject insert ObligationOptional
 * subject only Reference(ERefPatient)
 
 * encounter MS
-* insert ObligationOptional
+* encounter insert ObligationOptional
 * encounter only Reference(ERefEncounter)
 
 
 // TDG REF-31	Chief Complaint	Presenting complaint
 * category MS
   * ^definition = "Chief complaint: problem-list-item | Working Impression: encounter-diagnosis"
-* insert ObligationOptional
+* category insert ObligationOptional
 
 // TDG REF-32	Clinical History
 * note MS
-* insert ObligationOptional
+* note insert ObligationOptional

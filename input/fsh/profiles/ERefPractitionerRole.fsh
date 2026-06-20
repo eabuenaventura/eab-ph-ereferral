@@ -24,12 +24,12 @@ Description: "Profile on PractitionerRole for the Philippines eReferral specific
 // TDG REF-2: Practitioner Role - Must Support for eReferral workflow
 * code MS
 * code from EReferralPractitionerRoleCode (required)
-* insert ObligationRequired
+* code insert ObligationRequired
 
 * practitioner MS
-* insert ObligationOptional
+* practitioner insert ObligationOptional
 * practitioner only Reference(PHCorePractitioner)
 
 * organization MS
-* insert ObligationOptional
+* organization insert ObligationOptional
 * organization only Reference(PHCoreOrganization)
