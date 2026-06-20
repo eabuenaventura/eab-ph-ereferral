@@ -214,7 +214,6 @@ Accept: application/fhir+json
   "entry": [
     // ── Master Data: Conditional PUT entries (upsert via identifier) ──
     {
-      // PUT by PhilSys ID → upsert Patient
       "fullUrl": "urn:uuid:d7e33c3b-e90b-464e-a5eb-a92f60c71542",
       "resource": {
         "resourceType": "Patient",
@@ -240,10 +239,10 @@ Accept: application/fhir+json
           "name": {"use": "official", "family": "Reyes", "given": ["Roberto"]}
         }]
       },
+      // PUT by PhilSys ID → upsert Patient
       "request": {"method": "PUT", "url": "Patient?identifier=http://philsys.gov.ph/fhir/Identifier/philsys-id|7731-0812-4491-0326"}
     },
     {
-      // PUT by PRC license number → upsert Practitioner (referring: Dr. Villanueva)
       "fullUrl": "urn:uuid:309021d0-7abe-4b54-b2e9-23a056851d0e",
       "resource": {
         "resourceType": "Practitioner",
@@ -251,10 +250,10 @@ Accept: application/fhir+json
         "identifier": [{"system": "https://prc.gov.ph/", "value": "5466863"}],
         "name": [{"use": "official", "family": "Villanueva", "given": ["Maria"], "prefix": ["Dr."]}]
       },
+      // PUT by PRC license number → upsert Practitioner (referring: Dr. Villanueva)
       "request": {"method": "PUT", "url": "Practitioner?identifier=https://prc.gov.ph/|5466863"}
     },
     {
-      // PUT by PRC license number → upsert Practitioner (receiving: Dr. Carlos Lim)
       "fullUrl": "urn:uuid:4f8b2c1d-9a3e-4b7c-8d1f-2e6a5b3c0d9e",
       "resource": {
         "resourceType": "Practitioner",
@@ -262,10 +261,10 @@ Accept: application/fhir+json
         "identifier": [{"system": "https://prc.gov.ph/", "value": "7890123"}],
         "name": [{"use": "official", "family": "Lim", "given": ["Carlos"], "prefix": ["Dr."]}]
       },
+      // PUT by PRC license number → upsert Practitioner (receiving: Dr. Carlos Lim)
       "request": {"method": "PUT", "url": "Practitioner?identifier=https://prc.gov.ph/|7890123"}
     },
     {
-      // PUT by NHFR code → upsert Organization (referring: KHC)
       "fullUrl": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b",
       "resource": {
         "resourceType": "Organization",
@@ -286,10 +285,10 @@ Accept: application/fhir+json
           ]
         }]
       },
+      // PUT by NHFR code → upsert Organization (referring: KHC)
       "request": {"method": "PUT", "url": "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|3056"}
     },
     {
-      // PUT by PRC ID → upsert PractitionerRole (referring: KHC, inherits Practitioner's PRC)
       "fullUrl": "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9",
       "resource": {
         "resourceType": "PractitionerRole",
@@ -298,10 +297,10 @@ Accept: application/fhir+json
         "organization": {"reference": "urn:uuid:a038f451-6557-4b01-b05c-aa4ff967545b"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
+      // PUT by PRC ID → upsert PractitionerRole (referring: KHC, inherits Practitioner's PRC)
       "request": {"method": "PUT", "url": "PractitionerRole?identifier=https://prc.gov.ph/|5466863"}
     },
     {
-      // PUT by NHFR code → upsert Organization (receiving: DRSTMH)
       "fullUrl": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126",
       "resource": {
         "resourceType": "Organization",
@@ -313,10 +312,10 @@ Accept: application/fhir+json
         ],
         "telecom": [{"system": "phone", "value": "(043) 756-3124", "use": "work"}]
       },
+      // PUT by NHFR code → upsert Organization (receiving: DRSTMH)
       "request": {"method": "PUT", "url": "Organization?identifier=https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code|513"}
     },
     {
-      // PUT by PRC ID → upsert PractitionerRole (receiving: DRSTMH, inherits Dr. Carlos Lim's PRC)
       "fullUrl": "urn:uuid:6ce0a17b-7fb3-4075-a524-3afd390731de",
       "resource": {
         "resourceType": "PractitionerRole",
@@ -325,6 +324,7 @@ Accept: application/fhir+json
         "organization": {"reference": "urn:uuid:8c97c63e-4dbf-45d5-894e-f671e385a126"},
         "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "158965000", "display": "Medical practitioner"}]}]
       },
+      // PUT by PRC ID → upsert PractitionerRole (receiving: DRSTMH, inherits Dr. Carlos Lim's PRC)
       "request": {"method": "PUT", "url": "PractitionerRole?identifier=https://prc.gov.ph/|7890123"}
     }
     // ── Clinical / Business Data: POST entries (new resource per referral) ──
