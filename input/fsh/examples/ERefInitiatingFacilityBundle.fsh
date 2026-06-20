@@ -573,7 +573,6 @@ Description: "Provenance record with professional signature for Ana Reyes' refer
 * signature[=].when = "2026-06-18T08:30:00+08:00"
 * signature[=].who.reference = "urn:uuid:06924c91-7363-40ab-932b-6f64d0a102b9"
 * signature[=].data = "dGVzdHNpZ25hdHVyZWJhc2U2NA=="
-* signature[=].sigFormat = #application/signature+xml
 
 
 // =============================================================================
