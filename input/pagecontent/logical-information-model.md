@@ -61,6 +61,7 @@ considering the physical FHIR representation.
 | Clinical context and prior care | What is the patient's current condition, and what has already been done? | Supports safe handover, continuity of care, and avoidance of duplicate or unsafe treatment. | `ServiceRequest.supportingInfo`; Observation; Condition; Procedure; [EReferral MedicationAdministration](StructureDefinition-ereferral-medication-administration.html); [ERefImmunization](StructureDefinition-ereferral-immunization.html). |
 | Workflow and response tracking | Where is the referral in the process, and what has the receiving side reported? | Tracks responsibility, response, redirection, and closure without changing the clinical referral request itself. | [EReferral Task](StructureDefinition-ereferral-task.html); `Task.focus`; `Task.status`; `Task.businessStatus`; `Task.statusReason`; `Task.output`. |
 | Audit and provenance | Who submitted, signed, or changed referral information? | Supports traceability, trust, review, and medico-legal accountability. | [EReferral Provenance](StructureDefinition-ereferral-provenance.html); `ServiceRequest.relevantHistory`; `Provenance.target`; `Provenance.recorded`; `Provenance.agent`; `Provenance.signature`. |
+{:.ph-table}
 
 <!-- markdownlint-enable MD013 -->
 
@@ -89,6 +90,7 @@ annotations so missing row numbers are not read as accidental omissions:
 | Removed data dictionary row | REF-20 | Removed in current data dictionary |
 | Patient demographics and contact details | REF-21 to REF-30 | Patient identity |
 | Treatment given | REF-39 | Clinical context and prior care |
+{:.ph-table}
 
 <!-- markdownlint-enable MD013 -->
 
@@ -125,6 +127,7 @@ specialty or program-specific referral use cases.
 | Audit record to request | `ServiceRequest.relevantHistory`; `Provenance.target` | The provenance record for signatures, submissions, and updates. |
 | ServiceRequest to Encounter | `ServiceRequest.encounter` | The encounter associated with acting on or closing the referral. |
 | Clinical Summary Resources to Encounter | `Condition.encounter`;  `Observation.encounter`; `Procedure.encounter`; `DiagnosticReport.encounter` | The encounter associated with the clinical summary resources. |
+{:.ph-table}
 
 <!-- markdownlint-enable MD013 -->
 
@@ -206,6 +209,7 @@ from the diagram for readability.
 | Record audit event or signature | `POST /Provenance` | ERefProvenance | Provenance can target the ServiceRequest and record signer, author, update, or other auditable activity. |
 | Record encounter or closure context | `POST /Encounter`; `PUT/PATCH /Task/{id}` | ERefEncounter, Task | Encounter can point back to the referral using `Encounter.basedOn`. Task completion records closure of the workflow tracking item. |
 | Submit as one package when supported | `POST /` with a transaction Bundle | Bundle containing the referral package resources | Transaction Bundles are useful for keeping references consistent, but server support and security rules must be confirmed. |
+{:.ph-table}
 
 <!-- markdownlint-enable MD013 -->
 
